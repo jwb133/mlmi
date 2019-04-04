@@ -21,16 +21,17 @@ withinBetween <- function(imps, analysisfun, dfComplete=100000, ...) {
   if (pd==FALSE) {
     #implement von Hippel's WB variance
     gammaHatMis <- solve(What) %*% Bhat
-    gammaTildeMis <- h(gammaHatMis, M-1)
-    gammaTildeObs <- 1-gammaTildeMis
-    VTildeML_MLMI <- What/gammaObs
+    gammaTildeMis <- H(gammaHatMis, M-1)
+    gammaTildeObs <- diag(length(thetaHat))-gammaTildeMis
+    VTildeML_MLMI <- What %*% solve(gammaTildeObs)
     vTildeMLMI <- VTildeML_MLMI + Bhat/M
 
     #degrees of freedom
-    nuTildeML_WB <- (M-1)*(gammaTildeObs/gammaTildeMis)^2 - 4
+    nuTildeML_WB <- (M-1)*(mean(diag(gammaTildeObs))/mean(diag(gammaTildeMis)))^2 - 4
     nuHatMLMI_WB <- VTildeMLMI^2 / (VTildeML_MLMI^2/nuTildeML_WB + (Bhat/M)^2 / (M-1))
     nuTildeObs <- dfComplete*gammaTildeObs*(dfComplete+3)/(dfComplete+1)
     nuTildeMLMI_WB <- max(3,((1/nuHatMLMI_WB) + (1/nuTildeObs))^(-1))
+
   } else {
     #Rubin's rules
     VhatPDMI_WB <- What + (1+1/M)*Bhat
