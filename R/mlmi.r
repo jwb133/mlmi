@@ -21,7 +21,6 @@ normUniImp <- function(obsData, impFormula, M=5, pd=FALSE) {
   impMod <- lm(impFormula, data=obsData)
 
   outcomeVar <- all.vars(impFormula)[1]
-  print(outcomeVar)
 
   imps <- vector("list", M)
 
@@ -49,6 +48,6 @@ normUniImp <- function(obsData, impFormula, M=5, pd=FALSE) {
         rnorm(sum(is.na(obsData[,outcomeVar])), mean=0, sd=outcomeModResVar^0.5)
     }
   }
-
+  attributes(imps) <- list(pd=pd)
   imps
 }
