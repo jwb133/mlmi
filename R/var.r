@@ -66,11 +66,15 @@ withinBetween <- function(imps, analysisfun, dfComplete=100000, ...) {
     #Rubin's rules
     VhatPDMI_WB <- What + (1+1/M)*Bhat
     totalVar <- VhatPDMI_WB
-    gammaTildeMis <- (1+1/M)*sum(diag(Bhat %*% solve(VhatPDMI_WB)))/numParms
-    nuHatPDMI_WB <- (M-1)/gammaTildeMis^2
-    nuTildeObs <- dfComplete*(1-gammaTildeMis)*(dfComplete+1)/(dfComplete+3)
-    nuTildePDMI_WB <- max(3, (1/nuHatPDMI_WB + 1/nuTildeObs)^(-1))
-    MIdf <- nuTildePDMI_WB
+    #calculate Barnard and Rubin degrees of freedom, element-wise, as per Stata
+    MIdf <- rep(0, numParms)
+    for (i in 1:numParms) {
+      gammaTildeMis <- (1+1/M)*Bhat[i,i]/totalVar[i,i]
+      nuHatPDMI_WB <- (M-1)/gammaTildeMis^2
+      nuTildeObs <- dfComplete*(1-gammaTildeMis)*(dfComplete+1)/(dfComplete+3)
+      nuTildePDMI_WB <- max(3, (1/nuHatPDMI_WB + 1/nuTildeObs)^(-1))
+      MIdf[i] <- nuTildePDMI_WB
+    }
   }
 
   list(est=thetaHat, var=totalVar, df=MIdf)
