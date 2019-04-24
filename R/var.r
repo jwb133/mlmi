@@ -1,3 +1,11 @@
+#' Within between variance estimation
+#'
+#' @param imps A list of imputed datasets.
+#' @param analysisfun A function to analyse the imputed datasets.
+#' @param dfComplete The complete data degrees of freedom.
+#' @param ... Other parameters that are to be passed through to \code{analysisfun}.
+#' @return A list of imputed datasets.
+#' @export
 withinBetween <- function(imps, analysisfun, dfComplete=100000, ...) {
   M <- length(imps)
   pd <- as.logical(attributes(imps)['pd'])
