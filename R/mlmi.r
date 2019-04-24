@@ -26,7 +26,6 @@ normUniImp <- function(obsData, impFormula, M=5, pd=FALSE) {
 
   if (pd==FALSE) {
     fittedVals <- predict(impMod, obsData)
-    print(fittedVals)
     for (i in 1:M) {
       imps[[i]] <- obsData
       #impute
