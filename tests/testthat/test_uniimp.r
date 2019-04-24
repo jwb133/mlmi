@@ -25,6 +25,19 @@ test_that("Univariate normal imputation with PD runs", {
   }, NA)
 })
 
+test_that("Univariate normal imputation with M=1 returns data frame not a list", {
+  expect_equal({
+    set.seed(1234)
+    n <- 10
+    x <- rnorm(n)
+    y <- x+rnorm(n)
+    y[1:5] <- NA
+    temp <- data.frame(x,y)
+    imps <- normUniImp(temp, y~x, M=1, pd=TRUE)
+    is.data.frame(imps)
+  }, TRUE)
+})
+
 test_that("Within between function runs no PD, scalar model", {
   expect_error({
     set.seed(1234)

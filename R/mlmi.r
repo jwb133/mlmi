@@ -12,7 +12,7 @@
 #' @param M Number of imputations to generate.
 #' @param pd Specify whether to use posterior draws (\code{TRUE})
 #' or not (\code{FALSE}).
-#' @return A list of imputed datasets.
+#' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 #' @export
 normUniImp <- function(obsData, impFormula, M=5, pd=FALSE) {
   #put some checks in to check there are no missing values in covariates of imp model
@@ -22,31 +22,44 @@ normUniImp <- function(obsData, impFormula, M=5, pd=FALSE) {
 
   outcomeVar <- all.vars(impFormula)[1]
 
-  imps <- vector("list", M)
+  if (M>1) {
+    imps <- vector("list", M)
+  }
 
   if (pd==FALSE) {
     fittedVals <- predict(impMod, obsData)
     for (i in 1:M) {
-      imps[[i]] <- obsData
+      newimp <- obsData
       #impute
-      imps[[i]][is.na(obsData[,outcomeVar]),outcomeVar] <- fittedVals[is.na(obsData[,outcomeVar])] +
+      newimp[is.na(obsData[,outcomeVar]),outcomeVar] <- fittedVals[is.na(obsData[,outcomeVar])] +
         rnorm(sum(is.na(obsData[,outcomeVar])), mean=0, sd=sigma(impMod))
+      if (M>1) {
+        imps[[i]] <- newimp
+      }
     }
   } else {
     beta <- impMod$coef
     sigmasq <- summary(impMod)$sigma^2
     varcov <- vcov(impMod)
     for (i in 1:M) {
-      imps[[i]] <- obsData
+      newimp <- obsData
       outcomeModResVar <- (sigmasq*impMod$df) / rchisq(1,impMod$df)
       covariance <- (outcomeModResVar/sigmasq)*varcov
       outcomeModBeta <- beta + MASS::mvrnorm(1, mu=rep(0,ncol(covariance)), Sigma=covariance)
       impMod$coefficients <- outcomeModBeta
       fittedVals <- predict(impMod, obsData)
-      imps[[i]][is.na(obsData[,outcomeVar]),outcomeVar] <- fittedVals[is.na(obsData[,outcomeVar])] +
+      newimp[is.na(obsData[,outcomeVar]),outcomeVar] <- fittedVals[is.na(obsData[,outcomeVar])] +
         rnorm(sum(is.na(obsData[,outcomeVar])), mean=0, sd=outcomeModResVar^0.5)
+      if (M>1) {
+        imps[[i]] <- newimp
+      }
     }
   }
-  attributes(imps) <- list(pd=pd)
-  imps
+  if (M>1) {
+    attr(imps, "pd") <- pd
+    imps
+  } else {
+    attr(newimp, "pd") <- pd
+    newimp
+  }
 }
