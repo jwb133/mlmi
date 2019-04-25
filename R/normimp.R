@@ -6,12 +6,20 @@
 #' or not (\code{FALSE}).
 #' @param steps If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
 #' how many MCMC iterations to perform.
+#' @param rseed The value to set the \code{norm} package's random number seed to,
+#' using the \code{rngseed} function of \code{norm}. This function must be called at least
+#' once before imputing using \code{norm}. If the user wishes to set the seed using
+#' \code{rngseed} before calling \code{normImp}, set \code{rseed=NULL}.
 #' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 #' @export
-normImp <- function(obsData, M=10, pd=FALSE, steps=100) {
+normImp <- function(obsData, M=10, pd=FALSE, steps=100, rseed) {
 
   if (is.data.frame(obsData)==FALSE) {
     stop("obsData argumment must be a data frame.")
+  }
+
+  if (is.null(rseed)==FALSE) {
+    norm::rngseed(rseed)
   }
 
   imps <- vector("list", M)
