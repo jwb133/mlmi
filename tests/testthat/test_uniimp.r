@@ -1,5 +1,4 @@
 context("Testing univariate imputation functions")
-library(mlmi)
 
 test_that("Univariate normal imputation no PD draw runs", {
   expect_error({

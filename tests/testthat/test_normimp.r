@@ -1,10 +1,9 @@
 context("Testing multivariate normal imputation functions")
-library(mlmi)
 
 test_that("MVN imputation no PD draw runs", {
   expect_error({
     set.seed(1234)
-    rngseed(123126)
+    norm::rngseed(123126)
     n <- 100
     x <- rnorm(n)
     y <- x+rnorm(n)
@@ -17,7 +16,7 @@ test_that("MVN imputation no PD draw runs", {
 test_that("MVN imputation with PD draw runs", {
   expect_error({
     set.seed(1234)
-    rngseed(123126)
+    norm::rngseed(123126)
     n <- 100
     x <- rnorm(n)
     y <- x+rnorm(n)
@@ -30,7 +29,7 @@ test_that("MVN imputation with PD draw runs", {
 test_that("MVN imputation returns a data frame when M=1", {test_that("MVN imputation returns a data frame when M=1", {
   expect_equal({
     set.seed(1234)
-    rngseed(123126)
+    norm::rngseed(123126)
     n <- 100
     x <- rnorm(n)
     y <- x+rnorm(n)
@@ -42,7 +41,7 @@ test_that("MVN imputation returns a data frame when M=1", {test_that("MVN imputa
 })
   expect_equal({
     set.seed(1234)
-    rngseed(123126)
+    norm::rngseed(123126)
     n <- 100
     x <- rnorm(n)
     y <- x+rnorm(n)
@@ -56,7 +55,7 @@ test_that("MVN imputation returns a data frame when M=1", {test_that("MVN imputa
 test_that("MVN imputation returns a list with correct pd value attribute", {
   expect_equal({
     set.seed(1234)
-    rngseed(123126)
+    norm::rngseed(123126)
     n <- 100
     x <- rnorm(n)
     y <- x+rnorm(n)
