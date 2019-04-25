@@ -17,7 +17,7 @@ normUniImp(obsData, impFormula, M = 5, pd = FALSE)
 or not (\code{FALSE}).}
 }
 \value{
-A list of imputed datasets.
+A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 }
 \description{
 Performs multiple imputation of a single continuous variable using a normal
