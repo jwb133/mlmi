@@ -34,7 +34,7 @@ test_that("Manually setting seed prior to calling normImp", {
     y[1:50] <- NA
     temp <- data.frame(x,y)
     imps <- normImp(temp, M=10, pd=FALSE, rseed=NULL)
-  })
+  }, NA)
 })
 
 test_that("MVN imputation with PD draw runs", {
