@@ -19,10 +19,10 @@
 #' the desired log-linear model.
 #' @param steps If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
 #' how many MCMC iterations to perform.
-#' @param rseed The value to set the \code{norm} package's random number seed to,
-#' using the \code{rngseed} function of \code{norm}. This function must be called at least
-#' once before imputing using \code{norm}. If the user wishes to set the seed using
-#' \code{rngseed} before calling \code{normImp}, set \code{rseed=NULL}.
+#' @param rseed The value to set the \code{cat} package's random number seed to,
+#' using the \code{rngseed} function of \code{cat}. This function must be called at least
+#' once before imputing using \code{cat}. If the user wishes to set the seed using
+#' \code{rngseed} before calling \code{catImp}, set \code{rseed=NULL}.
 #' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 #' @export
 catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rseed) {
@@ -88,9 +88,9 @@ catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rse
     #PDMI
     for (i in 1:M) {
       if (is.null(margins)==FALSE) {
-        theta <- cat::da.cat(s,thetahat,steps=steps)
-      } else {
         theta <- cat::dabipf(s,margins=margins,start=thetahat,steps=steps)
+      } else {
+        theta <- cat::da.cat(s,thetahat,steps=steps)
       }
       imps[[i]] <- as.data.frame(cat::imp.cat(s,theta))
     }

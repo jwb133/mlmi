@@ -4,7 +4,7 @@
 \alias{normImp}
 \title{Multivariate normal model imputation}
 \usage{
-normImp(obsData, M = 10, pd = FALSE, steps = 100)
+normImp(obsData, M = 10, pd = FALSE, steps = 100, rseed)
 }
 \arguments{
 \item{obsData}{The data frame to be imputed.}
@@ -16,6 +16,11 @@ or not (\code{FALSE}).}
 
 \item{steps}{If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
 how many MCMC iterations to perform.}
+
+\item{rseed}{The value to set the \code{norm} package's random number seed to,
+using the \code{rngseed} function of \code{norm}. This function must be called at least
+once before imputing using \code{norm}. If the user wishes to set the seed using
+\code{rngseed} before calling \code{normImp}, set \code{rseed=NULL}.}
 }
 \value{
 A list of imputed datasets, or if \code{M=1}, just the imputed data frame.

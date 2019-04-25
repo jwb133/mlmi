@@ -5,7 +5,7 @@
 \title{Categorical data model imputation using log linear models}
 \usage{
 catImp(obsData, M = 10, pd = FALSE, type = 1, margins = NULL,
-  steps = 100)
+  steps = 100, rseed)
 }
 \arguments{
 \item{obsData}{The data frame to be imputed. Variables must be coded taking positive
@@ -26,6 +26,11 @@ the desired log-linear model.}
 
 \item{steps}{If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
 how many MCMC iterations to perform.}
+
+\item{rseed}{The value to set the \code{cat} package's random number seed to,
+using the \code{rngseed} function of \code{cat}. This function must be called at least
+once before imputing using \code{cat}. If the user wishes to set the seed using
+\code{rngseed} before calling \code{catImp}, set \code{rseed=NULL}.}
 }
 \value{
 A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
@@ -36,8 +41,4 @@ as described by Schafer (1997), using his \code{cat} package. By default
 \code{catImp} will impute using a log-linear model allowing for all two-way
 associations, but not higher order associations. This can be modified through
 use of the \code{type} and \code{margins} arguments.
-}
-\details{
-The \code{rngseed} function must be called at least once before \code{catSatImp}
-is called.
 }
