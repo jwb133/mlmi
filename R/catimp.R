@@ -1,10 +1,10 @@
-#' Categorical data model imputation under saturated multinomial model
+#' Categorical data model imputation using log linear models
 #'
-#' This function performs multiple imputation under a saturated multinomial model
-#' for categorical data, as described by Schafer (1997). If the dataset has
-#' more than a small number of variables, a saturated multinomial model may not
-#' be estimable, in which case the user should consider a simpler log-linear
-#' model.
+#' This function performs multiple imputation under a log-linear model
+#' as described by Schafer (1997), using his \code{cat} package. By default
+#' \code{catImp} will impute using a log-linear model allowing for all two-way
+#' associations, but not higher order associations. This can be modified through
+#' use of the \code{type} and \code{margins} arguments.
 #'
 #' The \code{rngseed} function must be called at least once before \code{catSatImp}
 #' is called.
@@ -14,11 +14,17 @@
 #' @param M Number of imputations to generate.
 #' @param pd Specify whether to use posterior draws (\code{TRUE})
 #' or not (\code{FALSE}).
+#' @param type An integer specifying what type of log-linear model to impute using.
+#' \code{type=1}, the default, allows for all two-way associations in the log-linear model.
+#' \code{type=2} allows for all three-way associations (plus lower).
+#' \code{type=3} fits a saturated model.
+#' @param margins An optional argument that can be used instead of \code{type} to specify
+#' the desired log-linear model.
 #' @param steps If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
 #' how many MCMC iterations to perform.
 #' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 #' @export
-catSatImp <- function(obsData, M=10, pd=FALSE, steps=100) {
+catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100) {
 
   if (is.data.frame(obsData)==FALSE) {
     stop("obsData argumment must be a data frame.")
@@ -27,7 +33,46 @@ catSatImp <- function(obsData, M=10, pd=FALSE, steps=100) {
   imps <- vector("list", M)
 
   s <- cat::prelim.cat(as.matrix(obsData))
-  thetahat <- cat::em.cat(s)
+
+  if (is.null(margins)==FALSE) {
+    print("Imputing using log-linear model specified by margins argument")
+  } else if (type==1) {
+    print("Imputing using log-linear model with 2-way associations")
+    #create corresponding margins argument
+    margins <- NULL
+    for (i in 1:(ncol(obsData)-1)) {
+      for (j in (i+1):ncol(obsData)) {
+        margins <- c(margins, i,j,0)
+      }
+    }
+    margins <- head(margins, -1)
+  } else if (type==2) {
+    if (ncol(obsData)<3) {
+      stop("You cannot impute with 3-way associations with fewer than 3 variables.")
+    } else {
+      print("Imputing using log-linear model with 3-way (and lower order) associations")
+      #create corresponding margins argument
+      margins <- NULL
+      for (i in 1:(ncol(obsData)-2)) {
+        for (j in (i+1):(ncol(obsData)-1)) {
+          for (k in (j+1):ncol(obsData)) {
+            margins <- c(margins, i,j,k,0)
+          }
+        }
+      }
+      margins <- head(margins, -1)
+    }
+  }
+
+  #find MLE
+  if (is.null(margins)==FALSE) {
+    thetahat <- cat::ecm.cat(s, margins=margins)
+  } else if (type==3) {
+    print("Imputing using saturated log-linear model")
+    thetahat <- cat::em.cat(s)
+  } else {
+    stop("You must specify a valid type value or specify the margins argument.")
+  }
 
   if (pd==FALSE) {
     #MLMI
@@ -37,7 +82,11 @@ catSatImp <- function(obsData, M=10, pd=FALSE, steps=100) {
   } else {
     #PDMI
     for (i in 1:M) {
-      theta <- cat::da.cat(s,thetahat,steps=steps)
+      if (is.null(margins)==FALSE) {
+        theta <- cat::da.cat(s,thetahat,steps=steps)
+      } else {
+        theta <- cat::dabipf(s,margins=margins,start=thetahat,steps=steps)
+      }
       imps[[i]] <- as.data.frame(cat::imp.cat(s,theta))
     }
   }
