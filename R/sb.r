@@ -42,8 +42,7 @@ scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, ..
   #analyse each imputed datasets
   ests <- array(0, dim=c(M,numParms))
   for (m in 1:M) {
-    #result <- analysisFun(imps[[m]],...)
-    result <- analysisFun(imps[[m]])
+    result <- analysisFun(imps[[m]],...)
     ests[m,] <- result$est
   }
   thetaHat <- colMeans(ests)
