@@ -68,7 +68,7 @@ scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, ..
   gammaHatObs <- diag(numParms) - gammaHatMis
   gammaTildeMis <- H(gammaHatMis, (M-1)*N)
   gammaTildeObs <- diag(numParms) - gammaTildeMis
-  print(gammaTildeMis)
+
   VTildeML <- Vcom %*% solve(gammaTildeObs)
   totalVar <- VTildeML + Bhat/M
 
