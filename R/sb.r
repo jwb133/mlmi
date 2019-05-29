@@ -8,7 +8,7 @@
 #' @param analysisFun A function to analyse the imputed datasets that when applied to
 #' a dataset returns a list containing a vector \code{est}.
 #' @param scoreFun A function whose first argument is a dataset and whose second argument is
-#' a vector of parameter values. It should return a matrix of subject level scores \code{scores}
+#' a vector of parameter values. It should return a matrix of subject level scores
 #' evaluated at the parameter value passed to it.
 #' @param dfComplete The complete data degrees of freedom. If \code{analysisFun} returns a vector
 #' of parameter estimates, \code{dfComplete} should be a vector of the same length. If not
@@ -24,7 +24,7 @@
 #'
 #'
 #' @export
-scoreBased <- function(imps, analysisFun, pd=NULL, dfComplete=NULL, ...) {
+scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, ...) {
   M <- length(imps)
   if ("pd" %in% names(attributes(imps)) == TRUE) {
     pd <- as.logical(attributes(imps)['pd'])
@@ -48,7 +48,6 @@ scoreBased <- function(imps, analysisFun, pd=NULL, dfComplete=NULL, ...) {
   }
   thetaHat <- colMeans(ests)
   Bhat <- var(ests)
-
   scores <- array(0, dim=c(M,N,numParms))
   Vcom_inv <- array(0, dim=c(numParms,numParms))
   for (m in 1:M) {
@@ -67,11 +66,10 @@ scoreBased <- function(imps, analysisFun, pd=NULL, dfComplete=NULL, ...) {
 
   gammaHatMis <- Vmis_inv %*% Vcom
   gammaHatObs <- diag(numParms) - gammaHatMis
-
   gammaTildeMis <- H(gammaHatMis, (M-1)*N)
   gammaTildeObs <- diag(numParms) - gammaTildeMis
+  print(gammaTildeMis)
   VTildeML <- Vcom %*% solve(gammaTildeObs)
-
   totalVar <- VTildeML + Bhat/M
 
   if (is.null(dfComplete)) {
