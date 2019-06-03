@@ -50,7 +50,7 @@ scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, ..
   scores <- array(0, dim=c(M,N,numParms))
   Vcom_inv <- array(0, dim=c(numParms,numParms))
   for (m in 1:M) {
-    scores[m,,] <- scoreFun(imps[[m]], thetaHat)
+    scores[m,,] <- scoreFun(imps[[m]], thetaHat,...)
     Vcom_inv <- Vcom_inv + t(scores[m,,]) %*% scores[m,,]
   }
   Vcom_inv <- Vcom_inv / M
