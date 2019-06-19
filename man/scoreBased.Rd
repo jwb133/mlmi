@@ -4,7 +4,8 @@
 \alias{scoreBased}
 \title{Score based variance estimation}
 \usage{
-scoreBased(imps, analysisFun, pd = NULL, dfComplete = NULL, ...)
+scoreBased(imps, analysisFun, scoreFun, pd = NULL, dfComplete = NULL,
+  shrinkage = FALSE, ...)
 }
 \arguments{
 \item{imps}{A list of imputed datasets produced by one of the imputation functions
@@ -13,15 +14,18 @@ in \code{mlmi} or another package.}
 \item{analysisFun}{A function to analyse the imputed datasets that when applied to
 a dataset returns a list containing a vector \code{est}.}
 
+\item{scoreFun}{A function whose first argument is a dataset and whose second argument is
+a vector of parameter values. It should return a matrix of subject level scores
+evaluated at the parameter value passed to it.}
+
 \item{dfComplete}{The complete data degrees of freedom. If \code{analysisFun} returns a vector
 of parameter estimates, \code{dfComplete} should be a vector of the same length. If not
 specified, it is assumed that the complete data degrees of freedom is effectively infinite (1e+05).}
 
-\item{...}{Other parameters that are to be passed through to \code{analysisFun}.}
+\item{shrinkage}{Specify whether to shrink the fraction of missing information matrix gamma hat mis,
+as defined in von Hippel and Bartlett.}
 
-\item{scoreFun}{A function whose first argument is a dataset and whose second argument is
-a vector of parameter values. It should return a matrix of subject level scores \code{scores}
-evaluated at the parameter value passed to it.}
+\item{...}{Other parameters that are to be passed through to \code{analysisFun}.}
 }
 \value{
 A list containing the overall parameter estimates, its corresponding covariance matrix, and
