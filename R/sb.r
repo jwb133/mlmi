@@ -77,7 +77,9 @@ scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, ..
   }
 
   nuObs <- dfComplete*diag(gammaTildeObs)*(dfComplete+3)/(dfComplete+1)
-  MIdf <-  totalVar^2 / (totalVar^2/nuObs + (diag(Bhat)/M)^2/(M-1))
+  MIdf <-  diag(totalVar)^2 / (diag(VTildeML)^2/nuObs + (diag(Bhat)/M)^2/(M-1))
+  #don't let the df go below 3
+  MIdf <- pmax(3,MIdf)
 
   list(est=thetaHat, var=totalVar, df=MIdf)
 }
