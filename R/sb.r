@@ -13,8 +13,6 @@
 #' @param dfComplete The complete data degrees of freedom. If \code{analysisFun} returns a vector
 #' of parameter estimates, \code{dfComplete} should be a vector of the same length. If not
 #' specified, it is assumed that the complete data degrees of freedom is effectively infinite (1e+05).
-#' @param shrinkage Specify whether to shrink the fraction of missing information matrix gamma hat mis,
-#' as defined in von Hippel and Bartlett.
 #' @param ... Other parameters that are to be passed through to \code{analysisFun}.
 #' @return A list containing the overall parameter estimates, its corresponding covariance matrix, and
 #' degrees of freedom for each parameter.
@@ -26,7 +24,7 @@
 #'
 #'
 #' @export
-scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, shrinkage=FALSE, ...) {
+scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, ...) {
   M <- length(imps)
   if ("pd" %in% names(attributes(imps)) == TRUE) {
     pd <- as.logical(attributes(imps)['pd'])
@@ -65,15 +63,18 @@ scoreBased <- function(imps, analysisFun, scoreFun, pd=NULL, dfComplete=NULL, sh
   VML_inv <- Vcom_inv - Vmis_inv
   Vcom <- solve(Vcom_inv)
 
+  #ensure matrices are positive definite for next calculation to avoid numerical errors
+  Vcom <- Matrix::nearPD(Vcom)$mat
+  Vmis_inv <- Matrix::nearPD(Vmis_inv)$mat
+
   gammaHatMis <- Vmis_inv %*% Vcom
   gammaHatObs <- diag(numParms) - gammaHatMis
-  if (shrinkage==TRUE) {
-    gammaTildeMis <- H(gammaHatMis, (M-1)*N)
-  } else {
-    gammaTildeMis <- gammaHatMis
-  }
-  gammaTildeObs <- diag(numParms) - gammaTildeMis
+  gammaTildeMis <- H(gammaHatMis, (M-1)*N)
 
+  Vcom <- as.matrix(Vcom)
+  gammaTildeMis <- as.matrix(gammaTildeMis)
+
+  gammaTildeObs <- diag(numParms) - gammaTildeMis
   VTildeML <- Vcom %*% solve(gammaTildeObs)
   totalVar <- VTildeML + Bhat/M
 
