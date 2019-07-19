@@ -2,7 +2,11 @@
 #' the general location model.
 #'
 #' This function performs multiple imputation under a general location model
-#' as described by Schafer (1997), using the \code{mix} package.
+#' as described by Schafer (1997), using the \code{mix} package. Imputation can
+#' either be performed using posterior draws (\code{pd=TRUE}) or conditonal on the maximum likelihood
+#' estimate of the model parameters (\code{pd=FALSE}). See the descriptions for
+#' \code{marginsType}, \code{margins}, \code{designType}, \code{design} and the documentation
+#' in \code{mix} for details about how to specify the model.
 #'
 #' @param obsData The data frame to be imputed. The categorical variables must be
 #' in the first \code{nCat} columns, and they must be coded using consecutive positive
@@ -61,15 +65,19 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
     if (is.null(margins)==FALSE) {
       print("Imputing using specified margins argument")
     } else if (marginsType==1) {
-      print("Imputing categorical variables using all 2-way associations.")
-      #create corresponding margins argument
-      margins <- NULL
-      for (i in 1:(nCat-1)) {
-        for (j in (i+1):nCat) {
-          margins <- c(margins, i,j,0)
+      if (nCat>1) {
+        print("Imputing categorical variables using all 2-way associations.")
+        #create corresponding margins argument
+        margins <- NULL
+        for (i in 1:(nCat-1)) {
+          for (j in (i+1):nCat) {
+            margins <- c(margins, i,j,0)
+          }
         }
+        margins <- head(margins, -1)
+      } else {
+        margins <- 1
       }
-      margins <- head(margins, -1)
     } else if (marginsType==2) {
       if (nCat<3) {
         stop("You cannot impute with 3-way associations with fewer than 3 categorical variables.")
@@ -105,8 +113,10 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
       }
       #create formula of main effects of each variable
       dummyFormula <- "~Var1"
-      for (i in 2:ncol(dummyData)) {
-        dummyFormula <- paste(dummyFormula, "+Var", i, sep="")
+      if (ncol(dummyData)>1) {
+        for (i in 2:ncol(dummyData)) {
+          dummyFormula <- paste(dummyFormula, "+Var", i, sep="")
+        }
       }
       #use model.matrix to create design matrix
       design <- model.matrix(as.formula(dummyFormula), data=dummyData)

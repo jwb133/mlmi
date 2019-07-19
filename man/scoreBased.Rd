@@ -5,7 +5,7 @@
 \title{Score based variance estimation}
 \usage{
 scoreBased(imps, analysisFun, scoreFun, pd = NULL, dfComplete = NULL,
-  shrinkage = FALSE, ...)
+  ...)
 }
 \arguments{
 \item{imps}{A list of imputed datasets produced by one of the imputation functions
@@ -21,9 +21,6 @@ evaluated at the parameter value passed to it.}
 \item{dfComplete}{The complete data degrees of freedom. If \code{analysisFun} returns a vector
 of parameter estimates, \code{dfComplete} should be a vector of the same length. If not
 specified, it is assumed that the complete data degrees of freedom is effectively infinite (1e+05).}
-
-\item{shrinkage}{Specify whether to shrink the fraction of missing information matrix gamma hat mis,
-as defined in von Hippel and Bartlett.}
 
 \item{...}{Other parameters that are to be passed through to \code{analysisFun}.}
 }

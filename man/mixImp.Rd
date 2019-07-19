@@ -5,26 +5,40 @@
 \title{Imputation for a mixture of continuous and categorical variables using
 the general location model.}
 \usage{
-mixImp(obsData, nCat, M = 10, pd = FALSE, type = 1, margins = NULL,
-  design = NULL, steps = 100, rseed)
+mixImp(obsData, nCat, M = 10, pd = FALSE, marginsType = 1,
+  margins = NULL, designType = 1, design = NULL, steps = 100,
+  rseed)
 }
 \arguments{
 \item{obsData}{The data frame to be imputed. The categorical variables must be
-in the first \code{p} columns, and they must be coded using consecutive positive
+in the first \code{nCat} columns, and they must be coded using consecutive positive
 integers.}
+
+\item{nCat}{The number of categorical variables in \code{obsData}.}
 
 \item{M}{Number of imputations to generate.}
 
 \item{pd}{Specify whether to use posterior draws (\code{TRUE})
 or not (\code{FALSE}).}
 
-\item{margins}{An optional margins argument for specifying a restricted log-linear
-model for the categorical variables. If \code{margins} is specified, \code{design}
-must also be specified.}
+\item{marginsType}{An integer specifying what type of log-linear model to use for the
+categorical variables. \code{marginsType=1}, the default, allows for all two-way associations
+in the log-linear model. \code{marginsType=2} allows for all three-way associations (plus lower).
+\code{marginsType=3} assumes a saturated log-linear model for the categorical variables.}
 
-\item{design}{An optional argument for specifying the design matrix controlling the
-dependence of the continuous variables on the categorical variables.  If
-\code{design} is specified, \code{margins} must also be specified.}
+\item{margins}{If \code{marginsType} is not specified, \code{margins} must be
+supplied to specify the margins of the log-linear model for the categorical variable.
+See the help for \code{mix::ecm.mix} for details on specifying \code{margins}.}
+
+\item{designType}{An integer specifying how the continuous variables' means should depend
+on the categorical variables. \code{designType=1}, the default, assumes the mean of each continuous
+variable is a linear function with main effects of the categorical variables.
+\code{designType=2} assumes each continuous variables has a separate mean for each
+combination of the categorical variables.}
+
+\item{design}{If \code{designType} is not specified, \code{design} must be supplied
+to specify how the mean of the continuous variables depends on the categorical variables.
+See the help for \code{mix::ecm.mix} for details on specifying \code{design}.}
 
 \item{steps}{If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
 how many MCMC iterations to perform.}
@@ -33,13 +47,11 @@ how many MCMC iterations to perform.}
 using the \code{rngseed} function of \code{mix}. This function must be called at least
 once before imputing using \code{mix}. If the user wishes to set the seed using
 \code{rngseed} before calling \code{mixImp}, set \code{rseed=NULL}.}
-
-\item{p}{The number of categorical variables in \code{obsData}.}
 }
 \value{
 A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 }
 \description{
 This function performs multiple imputation under a general location model
-as described by Schafer (1997), using his \code{mix} package.
+as described by Schafer (1997), using the \code{mix} package.
 }
