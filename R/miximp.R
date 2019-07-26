@@ -4,9 +4,15 @@
 #' This function performs multiple imputation under a general location model
 #' as described by Schafer (1997), using the \code{mix} package. Imputation can
 #' either be performed using posterior draws (\code{pd=TRUE}) or conditonal on the maximum likelihood
-#' estimate of the model parameters (\code{pd=FALSE}). See the descriptions for
-#' \code{marginsType}, \code{margins}, \code{designType}, \code{design} and the documentation
-#' in \code{mix} for details about how to specify the model.
+#' estimate of the model parameters (\code{pd=FALSE}), referred to as maximum likelihood
+#' multiple imputation by von Hippel (2018).
+#'
+#' See the descriptions for \code{marginsType}, \code{margins}, \code{designType}, \code{design} and the documentation
+#' in \code{\link[mix]{ecm.mix}} for details about how to specify the model.
+#'
+#' Imputed datasets can be analysed using \code{\link{withinBetween}},
+#' \code{\link{scoreBased}}, or for example the
+#' \href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
 #'
 #' @param obsData The data frame to be imputed. The categorical variables must be
 #' in the first \code{nCat} columns, and they must be coded using consecutive positive
@@ -21,7 +27,7 @@
 #' \code{marginsType=3} assumes a saturated log-linear model for the categorical variables.
 #' @param margins If \code{marginsType} is not specified, \code{margins} must be
 #' supplied to specify the margins of the log-linear model for the categorical variable.
-#' See the help for \code{mix::ecm.mix} for details on specifying \code{margins}.
+#' See the help for \code{\link[mix]{ecm.mix}} for details on specifying \code{margins}.
 #' @param designType An integer specifying how the continuous variables' means should depend
 #' on the categorical variables. \code{designType=1}, the default, assumes the mean of each continuous
 #' variable is a linear function with main effects of the categorical variables.
@@ -29,7 +35,7 @@
 #' combination of the categorical variables.
 #' @param design If \code{designType} is not specified, \code{design} must be supplied
 #' to specify how the mean of the continuous variables depends on the categorical variables.
-#' See the help for \code{mix::ecm.mix} for details on specifying \code{design}.
+#' See the help for \code{\link[mix]{ecm.mix}} for details on specifying \code{design}.
 #' @param steps If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
 #' how many MCMC iterations to perform.
 #' @param rseed The value to set the \code{mix} package's random number seed to,
@@ -37,6 +43,15 @@
 #' once before imputing using \code{mix}. If the user wishes to set the seed using
 #' \code{rngseed} before calling \code{mixImp}, set \code{rseed=NULL}.
 #' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
+#'
+#' @references Schafer J.L. (1997). Analysis of incomplete multivariate data.
+#' Chapman & Hall, Boca Raton, Florida, USA.
+#'
+#' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
+#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+#'
+#' @example data-raw/mixExample.r
+#'
 #' @export
 mixImp <- function(obsData, nCat, M=10, pd=FALSE,
                    marginsType=1, margins=NULL, designType=1, design=NULL,
@@ -74,7 +89,7 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
             margins <- c(margins, i,j,0)
           }
         }
-        margins <- head(margins, -1)
+        margins <- utils::head(margins, -1)
       } else {
         margins <- 1
       }
@@ -92,7 +107,7 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
             }
           }
         }
-        margins <- head(margins, -1)
+        margins <- utils::head(margins, -1)
 
       }
     } else {

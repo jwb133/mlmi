@@ -26,5 +26,43 @@ once before imputing using \code{norm}. If the user wishes to set the seed using
 A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 }
 \description{
-Multivariate normal model imputation
+This function performs multiple imputation under a multivariate normal model
+as described by Schafer (1997), using his \code{norm} package, either with
+or without posterior draws.
+}
+\details{
+This function imputes from a multivariate normal model with unstructured covariance
+matrix, as described by Schafer (1997). With \code{pd=FALSE}, all imputed datasets
+are generated conditional on the MLE of the model parameter, referred to as maximum
+likelihood multiple imputation by von Hippel (2018).
+
+With \code{pd=TRUE}, regular 'proper' multiple imputation
+is used, where each imputation is drawn from a distinct value of the model
+parameter. Specifically, for each imputation, a single MCMC chain is run,
+iterating for \code{steps} iterations.
+
+Imputed datasets can be analysed using \code{\link{withinBetween}},
+\code{\link{scoreBased}}, or for example the
+\href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
+}
+\examples{
+#simulate a partially observed dataset from multivariate normal distribution
+set.seed(1234)
+n <- 100
+temp <- MASS::mvrnorm(n=n,mu=rep(0,4),Sigma=diag(4))
+
+#make some values missing
+for (i in 1:4) {
+  temp[(runif(n)<0.25),i] <- NA
+}
+
+#impute using normImp
+imps <- normImp(data.frame(temp), M=10, pd=FALSE, rseed=4423)
+}
+\references{
+Schafer J.L. (1997). Analysis of incomplete multivariate data.
+Chapman & Hall, Boca Raton, Florida, USA.
+
+von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
+more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
 }

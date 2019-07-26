@@ -9,7 +9,9 @@ temp <- data.frame(x,y)
 #impute using normImp
 imps <- normImp(temp, M=100, pd=TRUE, rseed=4423)
 
-#analyse
+#define a function which analyses a dataset using our desired
+#analysis model, returning the estimated parameters and their
+#corresponding variance covariance matrix
 analysisFun <- function(inputData) {
   mod <- lm(y~x, data=inputData)
   list(est=coef(mod), var=vcov(mod))

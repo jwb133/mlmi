@@ -1,13 +1,28 @@
-#' Categorical data model imputation using log linear models
+#' Imputation for categorical variables using log linear models
 #'
 #' This function performs multiple imputation under a log-linear model
-#' as described by Schafer (1997), using his \code{cat} package. By default
-#' \code{catImp} will impute using a log-linear model allowing for all two-way
+#' as described by Schafer (1997), using his \code{cat} package, either with
+#' or without posterior draws.
+#'
+#' By default \code{catImp} will impute using a log-linear model allowing for all two-way
 #' associations, but not higher order associations. This can be modified through
 #' use of the \code{type} and \code{margins} arguments.
 #'
-#' @param obsData The data frame to be imputed. Variables must be coded taking positive
-#' integer values only.
+#' With \code{pd=FALSE}, all imputed datasets are generated conditional on the MLE
+#' of the model parameter, referred to as maximum likelihood multiple imputation
+#' by von Hippel (2018).
+#'
+#' With \code{pd=TRUE}, regular 'proper' multiple imputation
+#' is used, where each imputation is drawn from a distinct value of the model
+#' parameter. Specifically, for each imputation, a single MCMC chain is run,
+#' iterating for \code{steps} iterations.
+#'
+#' Imputed datasets can be analysed using \code{\link{withinBetween}},
+#' \code{\link{scoreBased}}, or for example the
+#' \href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
+#'
+#' @param obsData The data frame to be imputed. Variables must be coded such that
+#' they take consecutive positive integer values, i.e. 1,2,3,...
 #' @param M Number of imputations to generate.
 #' @param pd Specify whether to use posterior draws (\code{TRUE})
 #' or not (\code{FALSE}).
@@ -16,14 +31,27 @@
 #' \code{type=2} allows for all three-way associations (plus lower).
 #' \code{type=3} fits a saturated model.
 #' @param margins An optional argument that can be used instead of \code{type} to specify
-#' the desired log-linear model.
+#' the desired log-linear model. See the documentation for the \code{margins} argument
+#' in \code{\link[cat]{ecm.cat}} and Schafer (1997) on how to specify this.
 #' @param steps If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
-#' how many MCMC iterations to perform.
+#' how many MCMC iterations to perform in order to generate the model parameter value for
+#' each imputation.
 #' @param rseed The value to set the \code{cat} package's random number seed to,
 #' using the \code{rngseed} function of \code{cat}. This function must be called at least
 #' once before imputing using \code{cat}. If the user wishes to set the seed using
 #' \code{rngseed} before calling \code{catImp}, set \code{rseed=NULL}.
 #' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
+#'
+#' @references Schafer J.L. (1997). Analysis of incomplete multivariate data.
+#' Chapman & Hall, Boca Raton, Florida, USA.
+#'
+#' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
+#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+#'
+#' @example data-raw/catExample.r
+#'
+#' @import stats
+#'
 #' @export
 catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rseed) {
 
@@ -50,7 +78,7 @@ catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rse
         margins <- c(margins, i,j,0)
       }
     }
-    margins <- head(margins, -1)
+    margins <- utils::head(margins, -1)
   } else if (type==2) {
     if (ncol(obsData)<3) {
       stop("You cannot impute with 3-way associations with fewer than 3 variables.")
@@ -65,7 +93,7 @@ catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rse
           }
         }
       }
-      margins <- head(margins, -1)
+      margins <- utils::head(margins, -1)
     }
   }
 

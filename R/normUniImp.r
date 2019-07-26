@@ -4,8 +4,13 @@
 #' linear regression model. The covariates in the imputation model must be fully
 #' observed. By default \code{normUniImp} imputes every dataset using the
 #' maximum likelihood estimates of the imputation model parameters, which here
-#' coincides with the OLS estimates. If \code{pd=TRUE} is specified, it instead
+#' coincides with the OLS estimates, referred to as maximum likelihood multiple
+#' imputation by von Hippel (2018). If \code{pd=TRUE} is specified, it instead
 #' performs posterior draw Bayesian imputation.
+#'
+#' Imputed datasets can be analysed using \code{\link{withinBetween}},
+#' \code{\link{scoreBased}}, or for example the
+#' \href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
 #'
 #' @param obsData The data frame to be imputed.
 #' @param impFormula The linear model formula.
@@ -13,10 +18,14 @@
 #' @param pd Specify whether to use posterior draws (\code{TRUE})
 #' or not (\code{FALSE}).
 #' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
+#'
+#' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
+#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+#'
+#' @example data-raw/normUniExample.r
+#'
 #' @export
 normUniImp <- function(obsData, impFormula, M=5, pd=FALSE) {
-  #put some checks in to check there are no missing values in covariates of imp model
-
   #fit desired imputation model
   impMod <- lm(impFormula, data=obsData)
 

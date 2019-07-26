@@ -2,14 +2,14 @@
 % Please edit documentation in R/catimp.R
 \name{catImp}
 \alias{catImp}
-\title{Categorical data model imputation using log linear models}
+\title{Imputation for categorical variables using log linear models}
 \usage{
 catImp(obsData, M = 10, pd = FALSE, type = 1, margins = NULL,
   steps = 100, rseed)
 }
 \arguments{
-\item{obsData}{The data frame to be imputed. Variables must be coded taking positive
-integer values only.}
+\item{obsData}{The data frame to be imputed. Variables must be coded such that
+they take consecutive positive integer values, i.e. 1,2,3,...}
 
 \item{M}{Number of imputations to generate.}
 
@@ -22,10 +22,12 @@ or not (\code{FALSE}).}
 \code{type=3} fits a saturated model.}
 
 \item{margins}{An optional argument that can be used instead of \code{type} to specify
-the desired log-linear model.}
+the desired log-linear model. See the documentation for the \code{margins} argument
+in \code{\link[cat]{ecm.cat}} and Schafer (1997) on how to specify this.}
 
 \item{steps}{If \code{pd} is \code{TRUE}, the \code{steps} argument specifies
-how many MCMC iterations to perform.}
+how many MCMC iterations to perform in order to generate the model parameter value for
+each imputation.}
 
 \item{rseed}{The value to set the \code{cat} package's random number seed to,
 using the \code{rngseed} function of \code{cat}. This function must be called at least
@@ -37,8 +39,50 @@ A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 }
 \description{
 This function performs multiple imputation under a log-linear model
-as described by Schafer (1997), using his \code{cat} package. By default
-\code{catImp} will impute using a log-linear model allowing for all two-way
+as described by Schafer (1997), using his \code{cat} package, either with
+or without posterior draws.
+}
+\details{
+By default \code{catImp} will impute using a log-linear model allowing for all two-way
 associations, but not higher order associations. This can be modified through
 use of the \code{type} and \code{margins} arguments.
+
+With \code{pd=FALSE}, all imputed datasets are generated conditional on the MLE
+of the model parameter, referred to as maximum likelihood multiple imputation
+by von Hippel (2018).
+
+With \code{pd=TRUE}, regular 'proper' multiple imputation
+is used, where each imputation is drawn from a distinct value of the model
+parameter. Specifically, for each imputation, a single MCMC chain is run,
+iterating for \code{steps} iterations.
+
+Imputed datasets can be analysed using \code{\link{withinBetween}},
+\code{\link{scoreBased}}, or for example the
+\href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
+}
+\examples{
+#simulate a partially observed categorical dataset
+set.seed(1234)
+n <- 100
+
+#for simplicity we simulate completely independent variables
+temp <- data.frame(x1=ceiling(3*runif(n)), x2=ceiling(2*runif(n)), x3=ceiling(2*runif(n)))
+
+#make some data missing
+for (i in 1:3) {
+  temp[(runif(n)<0.25),i] <- NA
+}
+
+#impute using catImp, assuming two-way associations in the log-linear model
+imps <- catImp(temp, M=10, pd=FALSE, rseed=4423)
+
+#impute assuming a saturated log-linear model
+imps <- catImp(temp, M=10, pd=FALSE, type=3, rseed=4423)
+}
+\references{
+Schafer J.L. (1997). Analysis of incomplete multivariate data.
+Chapman & Hall, Boca Raton, Florida, USA.
+
+von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
+more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
 }
