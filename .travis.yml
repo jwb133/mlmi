@@ -3,5 +3,5 @@
 language: R
 cache: packages
 
-packages:
-    - libgsl0-dev
+r_binary_packages:
+    - gsl
