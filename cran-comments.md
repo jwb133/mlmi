@@ -9,3 +9,5 @@
 New submission note
 Possibly mis-spelled words in DESCRIPTION - these are correct.
 Possibly incorrect URLs and DOI - these are correct.
+
+Added proper URLs to README.md as requested by CRAN after first submission
