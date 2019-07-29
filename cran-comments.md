@@ -1,8 +1,9 @@
 ## Test environments
 * local Windows install, R 3.6.1
-* Ubuntu 14.04.5 LTS, R 3.6.0
-* win-builder on release version 3.6.0 (2019-04-26)
-* win-builder on development version (2019-06-23 r76734)
+* R-hub Ubuntu Linux 16.04 LTS, R-release, GCC
+* R-hub Fedora Linux, R-devel, clang, gfortran
+* R-hub Windows Server 2008 R2 SP1, R-devel, 32/64 bit
+* win-builder on release version 3.6.1 (2019-07-05)
 
 ## R CMD check results
 New submission note
