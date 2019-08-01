@@ -68,9 +68,9 @@ catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rse
   s <- cat::prelim.cat(as.matrix(obsData))
 
   if (is.null(margins)==FALSE) {
-    print("Imputing using log-linear model specified by margins argument")
+    message("Imputing using log-linear model specified by margins argument")
   } else if (type==1) {
-    print("Imputing using log-linear model with 2-way associations")
+    message("Imputing using log-linear model with 2-way associations")
     #create corresponding margins argument
     margins <- NULL
     for (i in 1:(ncol(obsData)-1)) {
@@ -83,7 +83,7 @@ catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rse
     if (ncol(obsData)<3) {
       stop("You cannot impute with 3-way associations with fewer than 3 variables.")
     } else {
-      print("Imputing using log-linear model with 3-way (and lower order) associations")
+      message("Imputing using log-linear model with 3-way (and lower order) associations")
       #create corresponding margins argument
       margins <- NULL
       for (i in 1:(ncol(obsData)-2)) {
@@ -101,7 +101,7 @@ catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rse
   if (is.null(margins)==FALSE) {
     thetahat <- cat::ecm.cat(s, margins=margins)
   } else if (type==3) {
-    print("Imputing using saturated log-linear model")
+    message("Imputing using saturated log-linear model")
     thetahat <- cat::em.cat(s)
   } else {
     stop("You must specify a valid type value or specify the margins argument.")

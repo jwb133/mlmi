@@ -71,17 +71,17 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
 
   if ((marginsType==3) & (designType==2)) {
     #a completely unrestricted general location model is to be used
-    print("Imputing using unrestricted general location model")
+    message("Imputing using unrestricted general location model")
     restrictedMod <- 0
   } else {
     #a restricted model is to be used
     restrictedMod <- 1
     #figure out margins specification
     if (is.null(margins)==FALSE) {
-      print("Imputing using specified margins argument")
+      message("Imputing using specified margins argument")
     } else if (marginsType==1) {
       if (nCat>1) {
-        print("Imputing categorical variables using all 2-way associations.")
+        message("Imputing categorical variables using all 2-way associations.")
         #create corresponding margins argument
         margins <- NULL
         for (i in 1:(nCat-1)) {
@@ -97,7 +97,7 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
       if (nCat<3) {
         stop("You cannot impute with 3-way associations with fewer than 3 categorical variables.")
       } else {
-        print("Imputing categorical variables using all three-way interactions.")
+        message("Imputing categorical variables using all three-way interactions.")
         #create corresponding margins argument
         margins <- NULL
         for (i in 1:(nCat-2)) {
@@ -111,15 +111,15 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
 
       }
     } else {
-      print("Imputing categorical variables using saturated log-linear model")
+      message("Imputing categorical variables using saturated log-linear model")
       margins <- 1:nCat
     }
 
     #figure out design specification
     if (is.null(design)==FALSE) {
-      print("Imputing using specified design argument")
+      message("Imputing using specified design argument")
     } else if (designType==1) {
-      print("Imputing continuous variables assuming main effects of categorical variables")
+      message("Imputing continuous variables assuming main effects of categorical variables")
       #create corresponding design argument
       #create dummy data with one row for each combination of categorical variables
       dummyData <- data.frame(expand.grid(mySeq(s$d)))
@@ -137,7 +137,7 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
       design <- model.matrix(as.formula(dummyFormula), data=dummyData)
 
     } else {
-      print("Imputing continuous variables assuming a separate mean for each combination of categorical variable values")
+      message("Imputing continuous variables assuming a separate mean for each combination of categorical variable values")
       design <- diag(s$ncells)
     }
   }

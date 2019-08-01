@@ -11,3 +11,5 @@ Possibly mis-spelled words in DESCRIPTION - these are correct.
 Possibly incorrect URLs and DOI - these are correct.
 
 Added proper URLs to README.md as requested by CRAN after first submission
+Added single quotes when referring to other packages names in DESCRIPTION as requested by CRAN after second submission
+Replaced print() with message() in catimp and miximp as requested by CRAN after second submission
