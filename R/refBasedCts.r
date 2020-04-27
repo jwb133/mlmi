@@ -14,8 +14,7 @@
 #'
 #' THINGS TO DO:
 #' 1) J2R IMPLEMENTATION
-#' 2) NON-MONOTONE MISSINGNESS
-#' 3) option for INTERACTIONS BETWEEN BASELINE AND VISIT
+#' 2) option for INTERACTIONS BETWEEN BASELINE AND VISIT
 #'
 #' @param obsData The data frame to be imputed.
 #' @param outcomeVarStem String for stem of outcome variable name, e.g. y if y1, y2, y3 are the outcome columns
@@ -77,20 +76,20 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
   #create data frame of just the outcome columns
   yObs <- subset(controlWide, select=paste(outcomeVarStem, 1:nVisits, sep=""))
 
-  #identify if there is any intermediate missingness
-  interMis <- nonMonotonePatterns(yObs)
+  #identify missingness patterns
+  controlMissPat <- missingnessPatterns(yObs)
 
   for (imp in 1:M) {
     yImp <- yObs
 
-    if (is.null(interMis)==FALSE) {
+    if (is.null(controlMissPat$nonMonotonePatterns)==FALSE) {
       #impute intermediate missingness assuming MAR
-      for (pat in 1:nrow(interMis)) {
+      for (pat in 1:nrow(controlMissPat$nonMonotonePatterns)) {
         #determine which are the intermediate missing values in the pattern
-        visitsToImpute <- as.numeric(intermediateDetect(interMis[pat,]))
-        visitsObs <- as.numeric(which(interMis[pat,]==1))
+        visitsToImpute <- as.numeric(intermediateDetect(controlMissPat$nonMonotonePatterns[pat,]))
+        visitsObs <- as.numeric(which(controlMissPat$nonMonotonePatterns[pat,]==1))
         #identify individuals with this pattern
-        rowsToImpute <- which(apply(1*(!is.na(yObs)), 1, function(x) identical(x, interMis[pat,])))
+        rowsToImpute <- which(apply(1*(!is.na(yObs)), 1, function(x) identical(x, controlMissPat$nonMonotonePatterns[pat,])))
         #calculate conditional covariance matrix
         condVar <- controlCov[visitsToImpute,visitsToImpute] - array(controlCov[visitsToImpute,visitsObs],
           dim=c(length(visitsToImpute),length(visitsObs))) %*%
@@ -104,19 +103,32 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
       }
     }
 
-    #impute for those who are missing all measurements
-    yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
-    yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + meanMat[is.na(yObs[,1]),]
+    #now impute any monotone missingness
+    if (is.null(controlMissPat$monotonePatterns)==FALSE) {
+      #impute intermediate missingness assuming MAR
+      for (pat in 1:nrow(controlMissPat$monotonePatterns)) {
+        if (sum(controlMissPat$monotonePatterns[pat,])==0) {
+          #every visit missing
+          yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
+          yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + meanMat[is.na(yObs[,1]),]
+        } else if (sum(controlMissPat$monotonePatterns[pat,]) < nVisits) {
+          #determine which are the intermediate missing values in the pattern
+          visitsToImpute <- as.numeric(which(controlMissPat$monotonePatterns[pat,]==0))
+          visitsObs <- as.numeric(which(controlMissPat$monotonePatterns[pat,]==1))
+          #identify individuals with this pattern
+          rowsToImpute <- which(apply(1*(!is.na(yObs)), 1, function(x) identical(x, controlMissPat$monotonePatterns[pat,])))
+          #calculate conditional covariance matrix
+          condVar <- controlCov[visitsToImpute,visitsToImpute] - array(controlCov[visitsToImpute,visitsObs],
+                                                                       dim=c(length(visitsToImpute),length(visitsObs))) %*%
+            solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
 
-    #impute for each drop-out pattern up to those who just missed final time point
-    for (i in 2:nVisits) {
-      #calculate conditional covariance matrix
-      condVar <- controlCov[i:nVisits,i:nVisits] - array(controlCov[i:nVisits,1:(i-1)], dim=c(nVisits-i+1,i-1)) %*% solve(controlCov[1:(i-1),1:(i-1)]) %*% t(array(controlCov[i:nVisits,1:(i-1)], dim=c(nVisits-i+1,i-1)))
-      yImp[is.na(yObs[,i]),i:nVisits] <- mvrnorm(n=sum(is.na(yObs[,i])), mu=rep(0,(nVisits-i+1)), Sigma=condVar)
-      #calculate mean conditional on observed outcomes
-      condMean <- meanMat[is.na(yObs[,i]),i:nVisits] + array(as.matrix(yImp[is.na(yObs[,i]),1:(i-1)]) - meanMat[is.na(yObs[,i]),1:(i-1)],dim=c(sum(is.na(yObs[,i])),i-1)) %*%
-         solve(controlCov[1:(i-1),1:(i-1)]) %*% t(array(controlCov[i:nVisits,1:(i-1)], dim=c(nVisits-i+1,i-1)))
-      yImp[is.na(yObs[,i]),i:nVisits] <- yImp[is.na(yObs[,i]),i:nVisits] + condMean
+          yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+          #calculate mean conditional on observed outcomes
+          condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
+            solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+          yImp[rowsToImpute,visitsToImpute] <- yImp[rowsToImpute,visitsToImpute] + condMean
+        }
+      }
     }
 
     imps[[imp]] <- obsData
@@ -159,6 +171,65 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
 
   #create data frame of just the outcome columns
   yObs <- subset(activeWide, select=paste(outcomeVarStem, 1:nVisits, sep=""))
+
+  #identify missingness patterns
+  activeMissPat <- missingnessPatterns(yObs)
+
+  for (imp in 1:M) {
+    yImp <- yObs
+
+    if (is.null(activeMissPat$nonMonotonePatterns)==FALSE) {
+      #impute intermediate missingness assuming MAR
+      for (pat in 1:nrow(activeMissPat$nonMonotonePatterns)) {
+        #determine which are the intermediate missing values in the pattern
+        visitsToImpute <- as.numeric(intermediateDetect(activeMissPat$nonMonotonePatterns[pat,]))
+        visitsObs <- as.numeric(which(activeMissPat$nonMonotonePatterns[pat,]==1))
+        #identify individuals with this pattern
+        rowsToImpute <- which(apply(1*(!is.na(yObs)), 1, function(x) identical(x, activeMissPat$nonMonotonePatterns[pat,])))
+        #calculate conditional covariance matrix
+        condVar <- activeCov[visitsToImpute,visitsToImpute] - array(activeCov[visitsToImpute,visitsObs],
+                                                                     dim=c(length(visitsToImpute),length(visitsObs))) %*%
+          solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+
+        yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+        #calculate mean conditional on observed outcomes
+        condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
+          solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+        yImp[rowsToImpute,visitsToImpute] <- yImp[rowsToImpute,visitsToImpute] + condMean
+      }
+    }
+
+    #now impute any monotone missingness
+    if (is.null(activeMissPat$monotonePatterns)==FALSE) {
+      #impute intermediate missingness assuming MAR
+      for (pat in 1:nrow(activeMissPat$monotonePatterns)) {
+        if (sum(activeMissPat$monotonePatterns[pat,])==0) {
+          #every visit missing
+          yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=activeCov)
+          yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + meanMat[is.na(yObs[,1]),]
+        } else if (sum(activeMissPat$monotonePatterns[pat,]) < nVisits) {
+          #determine which are the intermediate missing values in the pattern
+          visitsToImpute <- as.numeric(which(activeMissPat$monotonePatterns[pat,]==0))
+          visitsObs <- as.numeric(which(activeMissPat$monotonePatterns[pat,]==1))
+          #identify individuals with this pattern
+          rowsToImpute <- which(apply(1*(!is.na(yObs)), 1, function(x) identical(x, activeMissPat$monotonePatterns[pat,])))
+          #calculate conditional covariance matrix
+          condVar <- activeCov[visitsToImpute,visitsToImpute] - array(activeCov[visitsToImpute,visitsObs],
+                                                                       dim=c(length(visitsToImpute),length(visitsObs))) %*%
+            solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+
+          yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+          #calculate mean conditional on observed outcomes
+          condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
+            solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+          yImp[rowsToImpute,visitsToImpute] <- yImp[rowsToImpute,visitsToImpute] + condMean
+        }
+      }
+    }
+
+    imps[[imp]][obsData[,trtCol]==1,outcomeCols] <- yImp
+  }
+
   for (imp in 1:M) {
     yImp <- yObs
 
@@ -204,9 +275,9 @@ mmrmCov <- function(glsMod) {
   diag(mmrmSDs) %*% mmrmCor %*% diag(mmrmSDs)
 }
 
-#function which when passed a data matrix, finds the non-monotone missing data patterns
-#which occur (if any)
-nonMonotonePatterns <- function(yObs) {
+#function which when passed a data matrix, finds the missing data patterns
+#which occur
+missingnessPatterns <- function(yObs) {
   rMat <- 1-1*(is.na(yObs))
   uniquePatterns <- unique(rMat)
   nonMonotoneInd <- rep(0, nrow(uniquePatterns))
@@ -217,6 +288,7 @@ nonMonotonePatterns <- function(yObs) {
       nonMonotoneInd[i] <- TRUE
     }
   }
+  monotoneInd <- !nonMonotoneInd
 
   if (sum(nonMonotoneInd)==0) {
     #no intermediate missingness
@@ -229,7 +301,18 @@ nonMonotonePatterns <- function(yObs) {
       nonMonotonePatterns <- matrix(uniquePatterns[nonMonotoneInd==TRUE,], nrow=1)
     }
   }
-  nonMonotonePatterns
+  if (sum(monotoneInd)==0) {
+    #no monotone missingness
+    monotonePatterns <- NULL
+  } else {
+    #some monotone missingness
+    if (sum(monotoneInd)>1) {
+      monotonePatterns <- uniquePatterns[monotoneInd==TRUE,]
+    } else {
+      monotonePatterns <- matrix(uniquePatterns[monotoneInd==TRUE,], nrow=1)
+    }
+  }
+  list(monotonePatterns=monotonePatterns, nonMonotonePatterns=nonMonotonePatterns)
 }
 
 #function which when passed a vector of 0s and 1s detects intemediate missingness and returns
