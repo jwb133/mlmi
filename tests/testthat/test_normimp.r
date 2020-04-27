@@ -49,18 +49,7 @@ test_that("MVN imputation with PD draw runs", {
   }, NA)
 })
 
-test_that("MVN imputation returns a data frame when M=1", {test_that("MVN imputation returns a data frame when M=1", {
-  expect_equal({
-    set.seed(1234)
-    n <- 100
-    x <- rnorm(n)
-    y <- x+rnorm(n)
-    y[1:50] <- NA
-    temp <- data.frame(x,y)
-    imps <- normImp(temp, M=1, pd=FALSE, rseed=4423)
-    is.data.frame(imps)
-  }, TRUE)
-})
+test_that("MVN imputation returns a data frame when M=1", {
   expect_equal({
     set.seed(1234)
     n <- 100

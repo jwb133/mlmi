@@ -76,8 +76,33 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
 
   #create data frame of just the outcome columns
   yObs <- subset(controlWide, select=paste(outcomeVarStem, 1:nVisits, sep=""))
+
+  #identify if there is any intermediate missingness
+  interMis <- nonMonotonePatterns(yObs)
+
   for (imp in 1:M) {
     yImp <- yObs
+
+    if (is.null(interMis)==FALSE) {
+      #impute intermediate missingness assuming MAR
+      for (pat in 1:nrow(interMis)) {
+        #determine which are the intermediate missing values in the pattern
+        visitsToImpute <- as.numeric(intermediateDetect(interMis[pat,]))
+        visitsObs <- as.numeric(which(interMis[pat,]==1))
+        #identify individuals with this pattern
+        rowsToImpute <- which(apply(1*(!is.na(yObs)), 1, function(x) identical(x, interMis[pat,])))
+        #calculate conditional covariance matrix
+        condVar <- controlCov[visitsToImpute,visitsToImpute] - array(controlCov[visitsToImpute,visitsObs],
+          dim=c(length(visitsToImpute),length(visitsObs))) %*%
+          solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+
+        yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+        #calculate mean conditional on observed outcomes
+        condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
+          solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+        yImp[rowsToImpute,visitsToImpute] <- yImp[rowsToImpute,visitsToImpute] + condMean
+      }
+    }
 
     #impute for those who are missing all measurements
     yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
@@ -162,32 +187,6 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
   }
 }
 
-
-  impMod <- lm(impFormula, data=obsData)
-
-  outcomeVar <- all.vars(impFormula)[1]
-
-  if (M>1) {
-    imps <- vector("list", M)
-  }
-
-  fittedVals <- predict(impMod, obsData)
-  for (i in 1:M) {
-    newimp <- obsData
-    #impute
-    newimp[is.na(obsData[,outcomeVar]),outcomeVar] <- fittedVals[is.na(obsData[,outcomeVar])] +
-      rnorm(sum(is.na(obsData[,outcomeVar])), mean=0, sd=sigma(impMod))
-    if (M>1) {
-      imps[[i]] <- newimp
-    }
-  }
-  if (M>1) {
-    imps
-  } else {
-    newimp
-  }
-}
-
 #this function takes an MMRM fitted using GLS and creates the marginal covariance matrix
 mmrmCov <- function(glsMod) {
   #construct correlation matrix
@@ -203,4 +202,44 @@ mmrmCov <- function(glsMod) {
 
   #construct covariance matrix
   diag(mmrmSDs) %*% mmrmCor %*% diag(mmrmSDs)
+}
+
+#function which when passed a data matrix, finds the non-monotone missing data patterns
+#which occur (if any)
+nonMonotonePatterns <- function(yObs) {
+  rMat <- 1-1*(is.na(yObs))
+  uniquePatterns <- unique(rMat)
+  nonMonotoneInd <- rep(0, nrow(uniquePatterns))
+  for (i in 1:nrow(uniquePatterns)) {
+    if (identical(intermediateDetect(uniquePatterns[i,]),NA)) {
+      nonMonotoneInd[i] <- FALSE
+    } else {
+      nonMonotoneInd[i] <- TRUE
+    }
+  }
+
+  if (sum(nonMonotoneInd)==0) {
+    #no intermediate missingness
+    nonMonotonePatterns <- NULL
+  } else {
+    #some intermediate missingness
+    if (sum(nonMonotoneInd)>1) {
+      nonMonotonePatterns <- uniquePatterns[nonMonotoneInd==TRUE,]
+    } else {
+      nonMonotonePatterns <- matrix(uniquePatterns[nonMonotoneInd==TRUE,], nrow=1)
+    }
+  }
+  nonMonotonePatterns
+}
+
+#function which when passed a vector of 0s and 1s detects intemediate missingness and returns
+#positions on intermediate missing values
+intermediateDetect <- function(obsVec) {
+  missPos <- which(obsVec==0)
+  lastObsPos <- tail(which(obsVec==1),1)
+  if (length(missPos[missPos<lastObsPos])>0) {
+    missPos[missPos<lastObsPos]
+  } else {
+    NA
+  }
 }
