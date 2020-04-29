@@ -48,7 +48,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
   if (is.null(baselineVars)) {
     mixedFormula <- formula(paste(outcomeVarStem, "~ factor(time)", sep=""))
   } else {
-    mixedFormula <- formula(paste(outcomeVarStem, "~ factor(time)+", paste(baselineVars, sep="+"), sep=""))
+    mixedFormula <- formula(paste(outcomeVarStem, "~ factor(time)+", paste(baselineVars, collapse="+"), sep=""))
   }
   controlMod <- nlme::gls(mixedFormula,
                     na.action=na.omit, data=controlLong,
@@ -62,7 +62,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
     if (length(baselineVars)==1) {
       meanMat <- controlWide[,baselineVars]*tail(coef(controlMod),1)
     } else {
-      meanMat <- subset(controlWide, select=baselineVars) %*% array(tail(coef(controlMod),length(baselineVars)),
+      meanMat <- as.matrix(subset(controlWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
                                                                     dim=c(length(baselineVars), 1))
     }
     meanMat <- array(rep(meanMat, nVisits),dim=c(controlN,nVisits))
@@ -158,9 +158,9 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
       activeMeanMat <- activeWide[,baselineVars]*tail(coef(activeMod),1)
       controlMeanMat <- activeWide[,baselineVars]*tail(coef(controlMod),1)
     } else {
-      activeMeanMat <- subset(activeWide, select=baselineVars) %*% array(tail(coef(activeMod),length(baselineVars)),
+      activeMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(tail(coef(activeMod),length(baselineVars)),
                                                                     dim=c(length(baselineVars), 1))
-      controlMeanMat <- subset(activeWide, select=baselineVars) %*% array(tail(coef(controlMod),length(baselineVars)),
+      controlMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
                                                                          dim=c(length(baselineVars), 1))
     }
     activeMeanMat <- array(rep(activeMeanMat, nVisits),dim=c(activeN,nVisits))
