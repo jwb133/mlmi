@@ -29,11 +29,14 @@
 #' @example data-raw/normUniExample.r
 #'
 #' @export
-refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=NULL, baselineVisitInt=FALSE, M=5) {
+refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=NULL, type="MAR", baselineVisitInt=FALSE, M=5) {
+  if (nVisits<2) {
+    stop("You must have at least 2 post-baseline visits.")
+  }
   imps <- vector("list", M)
 
   trtCol <- which(colnames(obsData)==trtVar)
-  outcomeCols <- which(colnames(obsData)==paste(outcomeVarStem, 1:nVisits, sep=""))
+  outcomeCols <- which(colnames(obsData) %in% paste(outcomeVarStem, 1:nVisits, sep=""))
   controlWide <- obsData[obsData[,trtCol]==0,]
   controlN <- dim(controlWide)[1]
   #reshape to long form
@@ -51,7 +54,6 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
                     na.action=na.omit, data=controlLong,
                     correlation=corSymm(form=~time | mlmiId),
                     weights=varIdent(form=~1|time))
-  #print(summary(controlMod))
 
   controlCov <- mmrmCov(controlMod)
   #create matrix of covariate conditional means
@@ -105,14 +107,12 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
 
     #now impute any monotone missingness
     if (is.null(controlMissPat$monotonePatterns)==FALSE) {
-      #impute intermediate missingness assuming MAR
       for (pat in 1:nrow(controlMissPat$monotonePatterns)) {
         if (sum(controlMissPat$monotonePatterns[pat,])==0) {
           #every visit missing
           yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
           yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + meanMat[is.na(yObs[,1]),]
         } else if (sum(controlMissPat$monotonePatterns[pat,]) < nVisits) {
-          #determine which are the intermediate missing values in the pattern
           visitsToImpute <- as.numeric(which(controlMissPat$monotonePatterns[pat,]==0))
           visitsObs <- as.numeric(which(controlMissPat$monotonePatterns[pat,]==1))
           #identify individuals with this pattern
@@ -150,23 +150,30 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
   #print(summary(activeMod))
 
   activeCov <- mmrmCov(activeMod)
-  #create matrix of covariate conditional means
-  meanMat <- array(0, dim=c(activeN,nVisits))
+  #create matrix of covariate conditional means under both active and control model fits
+  activeMeanMat <- array(0, dim=c(activeN,nVisits))
+  controlMeanMat <- array(0, dim=c(activeN,nVisits))
   if (baselineVisitInt==FALSE) {
     if (length(baselineVars)==1) {
-      meanMat <- activeWide[,baselineVars]*tail(coef(activeMod),1)
+      activeMeanMat <- activeWide[,baselineVars]*tail(coef(activeMod),1)
+      controlMeanMat <- activeWide[,baselineVars]*tail(coef(controlMod),1)
     } else {
-      meanMat <- subset(activeWide, select=baselineVars) %*% array(tail(coef(activeMod),length(baselineVars)),
+      activeMeanMat <- subset(activeWide, select=baselineVars) %*% array(tail(coef(activeMod),length(baselineVars)),
                                                                     dim=c(length(baselineVars), 1))
+      controlMeanMat <- subset(activeWide, select=baselineVars) %*% array(tail(coef(controlMod),length(baselineVars)),
+                                                                         dim=c(length(baselineVars), 1))
     }
-    meanMat <- array(rep(meanMat, nVisits),dim=c(activeN,nVisits))
+    activeMeanMat <- array(rep(activeMeanMat, nVisits),dim=c(activeN,nVisits))
+    controlMeanMat <- array(rep(controlMeanMat, nVisits),dim=c(activeN,nVisits))
   } else {
     stop("Interactions between baseline covariates and visit is not yet coded up")
   }
   #now add in visit effects
-  meanMat[,1] <- meanMat[,1] + coef(activeMod)[1]
+  activeMeanMat[,1] <- activeMeanMat[,1] + coef(activeMod)[1]
+  controlMeanMat[,1] <- controlMeanMat[,1] + coef(controlMod)[1]
   for (i in 2:nVisits) {
-    meanMat[,i] <- meanMat[,i] + coef(activeMod)[1] + coef(activeMod)[i]
+    activeMeanMat[,i] <- activeMeanMat[,i] + coef(activeMod)[1] + coef(activeMod)[i]
+    controlMeanMat[,i] <- controlMeanMat[,i] + coef(controlMod)[1] + coef(controlMod)[i]
   }
 
   #create data frame of just the outcome columns
@@ -193,7 +200,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
 
         yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
         #calculate mean conditional on observed outcomes
-        condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
+        condMean <- activeMeanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - activeMeanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
           solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
         yImp[rowsToImpute,visitsToImpute] <- yImp[rowsToImpute,visitsToImpute] + condMean
       }
@@ -201,51 +208,45 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
 
     #now impute any monotone missingness
     if (is.null(activeMissPat$monotonePatterns)==FALSE) {
-      #impute intermediate missingness assuming MAR
       for (pat in 1:nrow(activeMissPat$monotonePatterns)) {
         if (sum(activeMissPat$monotonePatterns[pat,])==0) {
           #every visit missing
-          yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=activeCov)
-          yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + meanMat[is.na(yObs[,1]),]
+          if (type=="J2R") {
+            yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
+            yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + controlMeanMat[is.na(yObs[,1]),]
+          } else {
+            #MAR
+            yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=activeCov)
+            yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + activeMeanMat[is.na(yObs[,1]),]
+          }
         } else if (sum(activeMissPat$monotonePatterns[pat,]) < nVisits) {
-          #determine which are the intermediate missing values in the pattern
           visitsToImpute <- as.numeric(which(activeMissPat$monotonePatterns[pat,]==0))
           visitsObs <- as.numeric(which(activeMissPat$monotonePatterns[pat,]==1))
           #identify individuals with this pattern
           rowsToImpute <- which(apply(1*(!is.na(yObs)), 1, function(x) identical(x, activeMissPat$monotonePatterns[pat,])))
-          #calculate conditional covariance matrix
-          condVar <- activeCov[visitsToImpute,visitsToImpute] - array(activeCov[visitsToImpute,visitsObs],
-                                                                       dim=c(length(visitsToImpute),length(visitsObs))) %*%
-            solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+          if (type=="J2R") {
+            #calculate conditional covariance matrix
+            condVar <- controlCov[visitsToImpute,visitsToImpute] - array(controlCov[visitsToImpute,visitsObs],
+                                                                        dim=c(length(visitsToImpute),length(visitsObs))) %*%
+              solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
 
+            #calculate mean conditional on observed outcomes
+            condMean <- controlMeanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - activeMeanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
+              solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+          } else {
+            #calculate conditional covariance matrix
+            condVar <- activeCov[visitsToImpute,visitsToImpute] - array(activeCov[visitsToImpute,visitsObs],
+                                                                         dim=c(length(visitsToImpute),length(visitsObs))) %*%
+              solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+
+            #calculate mean conditional on observed outcomes
+            condMean <- activeMeanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - activeMeanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
+              solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
+          }
           yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
-          #calculate mean conditional on observed outcomes
-          condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
-            solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
           yImp[rowsToImpute,visitsToImpute] <- yImp[rowsToImpute,visitsToImpute] + condMean
         }
       }
-    }
-
-    imps[[imp]][obsData[,trtCol]==1,outcomeCols] <- yImp
-  }
-
-  for (imp in 1:M) {
-    yImp <- yObs
-
-    #impute for those who are missing all measurements
-    yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=activeCov)
-    yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + meanMat[is.na(yObs[,1]),]
-
-    #impute for each drop-out pattern up to those who just missed final time point
-    for (i in 2:nVisits) {
-      #calculate conditional covariance matrix
-      condVar <- activeCov[i:nVisits,i:nVisits] - array(activeCov[i:nVisits,1:(i-1)], dim=c(nVisits-i+1,i-1)) %*% solve(activeCov[1:(i-1),1:(i-1)]) %*% t(array(activeCov[i:nVisits,1:(i-1)], dim=c(nVisits-i+1,i-1)))
-      yImp[is.na(yObs[,i]),i:nVisits] <- mvrnorm(n=sum(is.na(yObs[,i])), mu=rep(0,(nVisits-i+1)), Sigma=condVar)
-      #calculate mean conditional on observed outcomes
-      condMean <- meanMat[is.na(yObs[,i]),i:nVisits] + array(as.matrix(yImp[is.na(yObs[,i]),1:(i-1)]) - meanMat[is.na(yObs[,i]),1:(i-1)],dim=c(sum(is.na(yObs[,i])),i-1)) %*%
-        solve(activeCov[1:(i-1),1:(i-1)]) %*% t(array(activeCov[i:nVisits,1:(i-1)], dim=c(nVisits-i+1,i-1)))
-      yImp[is.na(yObs[,i]),i:nVisits] <- yImp[is.na(yObs[,i]),i:nVisits] + condMean
     }
 
     imps[[imp]][obsData[,trtCol]==1,outcomeCols] <- yImp
