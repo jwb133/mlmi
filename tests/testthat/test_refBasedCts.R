@@ -87,6 +87,63 @@ test_that("Monotone missingness MAR imputation with M=2 and 2 baseline covariate
   }, NA)
 })
 
+test_that("Non-monotone MCAR imputation with no baseline covariates runs", {
+  expect_error({
+    set.seed(1234)
+    n <- 500
+    #we will make correlation with baseline the same to visit 1 and visit 2
+    corr <- matrix(1, nrow=3, ncol=3) + diag(0.5, nrow=3)
+    corr
+    data <- mvrnorm(n, mu=c(0,0,0), Sigma=corr)
+
+    trt <- 1*(runif(n)<0.5)
+    y1 <- data[,1]
+    y2 <- data[,2]
+    y3 <- data[,3]
+
+    #add in effect of treatment
+    y1 <- y1+trt*0.5
+    y2 <- y2+trt*1
+    y3 <- y3+trt*1.5
+
+    y1[1*(runif(n)<0.25)] <- NA
+    y2[1*(runif(n)<0.25)] <- NA
+    y3[1*(runif(n)<0.25)] <- NA
+
+    wideData <- data.frame(id=1:n, trt=trt, y1=y1, y2=y2, y3=y3)
+    imps <- refBasedCts(wideData, "y", 3, "trt", baselineVisitInt=FALSE, M=1)
+  }, NA)
+})
+
+test_that("Non-monotone MCAR imputation with no baseline covariates is unbiased at final time point", {
+  skip_on_cran()
+  expect_error({
+    set.seed(1234)
+    n <- 50000
+    #we will make correlation with baseline the same to visit 1 and visit 2
+    corr <- matrix(1, nrow=3, ncol=3) + diag(0.5, nrow=3)
+    data <- mvrnorm(n, mu=c(0,0,0), Sigma=corr)
+
+    trt <- 1*(runif(n)<0.5)
+    y1 <- data[,1]
+    y2 <- data[,2]
+    y3 <- data[,3]
+
+    #add in effect of treatment
+    y1 <- y1+trt*0.5
+    y2 <- y2+trt*1
+    y3 <- y3+trt*1.5
+
+    y1[1*(runif(n)<0.25)] <- NA
+    y2[1*(runif(n)<0.25)] <- NA
+    y3[1*(runif(n)<0.25)] <- NA
+
+    wideData <- data.frame(id=1:n, trt=trt, y1=y1, y2=y2, y3=y3)
+    imps <- refBasedCts(wideData, "y", 3, "trt", baselineVisitInt=FALSE, M=1)
+
+    (abs(mean(imps$y3[imps$trt==1])-1.5)<0.1) & (abs(mean(imps$y3[imps$trt==0])-0)<0.1)
+  }, NA)
+})
 
 test_that("Monotone missingness MAR imputation is unbiased at final time point", {
   skip_on_cran()

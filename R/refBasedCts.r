@@ -13,8 +13,8 @@
 #' approach is used for inference, rather than Rubin's rules.
 #'
 #' THINGS TO DO:
-#' 1) J2R IMPLEMENTATION
-#' 2) option for INTERACTIONS BETWEEN BASELINE AND VISIT
+#' 1) option for INTERACTIONS BETWEEN BASELINE AND VISIT
+#' 2) implement copy reference method
 #'
 #' @param obsData The data frame to be imputed.
 #' @param outcomeVarStem String for stem of outcome variable name, e.g. y if y1, y2, y3 are the outcome columns
@@ -57,13 +57,14 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
 
   controlCov <- mmrmCov(controlMod)
   #create matrix of covariate conditional means
-  meanMat <- array(0, dim=c(controlN,nVisits))
   if (baselineVisitInt==FALSE) {
     if (length(baselineVars)==1) {
       meanMat <- controlWide[,baselineVars]*tail(coef(controlMod),1)
-    } else {
+    } else if (length(baselineVars)>1) {
       meanMat <- as.matrix(subset(controlWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
                                                                     dim=c(length(baselineVars), 1))
+    } else {
+      meanMat <- rep(0, controlN)
     }
     meanMat <- array(rep(meanMat, nVisits),dim=c(controlN,nVisits))
   } else {
@@ -157,11 +158,15 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
     if (length(baselineVars)==1) {
       activeMeanMat <- activeWide[,baselineVars]*tail(coef(activeMod),1)
       controlMeanMat <- activeWide[,baselineVars]*tail(coef(controlMod),1)
-    } else {
+    } else if (length(baselineVars)>1) {
       activeMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(tail(coef(activeMod),length(baselineVars)),
                                                                     dim=c(length(baselineVars), 1))
       controlMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
                                                                          dim=c(length(baselineVars), 1))
+    } else {
+      #no baseline covariates
+      activeMeanMat <- rep(0, activeN)
+      controlMeanMat <- rep(0, activeN)
     }
     activeMeanMat <- array(rep(activeMeanMat, nVisits),dim=c(activeN,nVisits))
     controlMeanMat <- array(rep(controlMeanMat, nVisits),dim=c(activeN,nVisits))
