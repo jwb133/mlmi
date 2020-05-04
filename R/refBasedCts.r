@@ -12,6 +12,9 @@
 #' rather than a posterior draw. This is ok provided the aforementioned bootstrapping
 #' approach is used for inference, rather than Rubin's rules.
 #'
+#' Baseline covariates must be numeric variables. If you have factor variables you must
+#' code these into suitable dummy indicators and pass these to the function.
+#'
 #' THINGS TO DO:
 #' 1) option for INTERACTIONS BETWEEN BASELINE AND VISIT
 #' 2) implement copy reference method
@@ -32,6 +35,14 @@
 refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=NULL, type="MAR", baselineVisitInt=FALSE, M=5) {
   if (nVisits<2) {
     stop("You must have at least 2 post-baseline visits.")
+  }
+  if (!is.null(baselineVars)) {
+    #check all baseline covariates are not factors
+    for (i in 1:length(baselineVars)) {
+      if (is.factor(obsData[[baselineVars[i]]])) {
+        stop("Factor baseline variables are not allowed currently. Please code dummy variables and pass these.")
+      }
+    }
   }
   imps <- vector("list", M)
 
