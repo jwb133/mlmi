@@ -32,7 +32,8 @@
 #' @example data-raw/normUniExample.r
 #'
 #' @export
-refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=NULL, type="MAR", baselineVisitInt=FALSE, M=5) {
+refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=NULL,
+                        type="MAR", baselineVisitInt=FALSE, M=5) {
   if (nVisits<2) {
     stop("You must have at least 2 post-baseline visits.")
   }
@@ -58,13 +59,18 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
   #fit mixed model assuming MAR
   if (is.null(baselineVars)) {
     mixedFormula <- formula(paste(outcomeVarStem, "~ factor(time)", sep=""))
-  } else {
+  } else if (baselineVisitInt==FALSE) {
     mixedFormula <- formula(paste(outcomeVarStem, "~ factor(time)+", paste(baselineVars, collapse="+"), sep=""))
+  } else {
+    #interactions between time and baseline covariates
+    mixedFormula <- formula(paste(outcomeVarStem, "~ ",
+                                  paste("factor(time)*", baselineVars, collapse="+", sep=""), sep=""))
   }
   controlMod <- nlme::gls(mixedFormula,
                     na.action=na.omit, data=controlLong,
                     correlation=corSymm(form=~time | mlmiId),
                     weights=varIdent(form=~1|time))
+  print(summary(controlMod))
 
   controlCov <- mmrmCov(controlMod)
   #create matrix of covariate conditional means
@@ -78,13 +84,39 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
       meanMat <- rep(0, controlN)
     }
     meanMat <- array(rep(meanMat, nVisits),dim=c(controlN,nVisits))
+
+    #now add in visit effects
+    meanMat[,1] <- meanMat[,1] + coef(controlMod)[1]
+    for (i in 2:nVisits) {
+      meanMat[,i] <- meanMat[,i] + coef(controlMod)[1] + coef(controlMod)[i]
+    }
   } else {
-    stop("Interactions between baseline covariates and visit is not yet coded up")
-  }
-  #now add in visit effects
-  meanMat[,1] <- meanMat[,1] + coef(controlMod)[1]
-  for (i in 2:nVisits) {
-    meanMat[,i] <- meanMat[,i] + coef(controlMod)[1] + coef(controlMod)[i]
+    #interactions between time and baseline variables
+    if (length(baselineVars)==1) {
+      #intercept + covariate effect at visit 1
+      meanMat <- coef(controlMod)[1] + controlWide[,baselineVars]*coef(controlMod)[nVisits+3]
+      meanMat <- array(rep(meanMat, nVisits),dim=c(controlN,nVisits))
+
+      for (i in 2:nVisits) {
+        #visit effect plus extra effect of baseline variable at this visit
+        meanMat[,i] <- meanMat[,i] + coef(controlMod)[i] + controlWide[,baselineVars]*coef(controlMod)[nVisits+i]
+      }
+
+      meanMat <- controlWide[,baselineVars]*tail(coef(controlMod),1)
+    } else if (length(baselineVars)>1) {
+      stop("Not done this yet")
+      meanMat <- as.matrix(subset(controlWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
+                                                                               dim=c(length(baselineVars), 1))
+    } else {
+      stop("You have specified interactions between baseline variables and time, but you have specified any baseline variables.")
+    }
+
+    #now add in visit effects
+    meanMat[,1] <- meanMat[,1] + coef(controlMod)[1]
+    for (i in 2:nVisits) {
+      meanMat[,i] <- meanMat[,i] + coef(controlMod)[1] + coef(controlMod)[i]
+    }
+
   }
 
   #create data frame of just the outcome columns
