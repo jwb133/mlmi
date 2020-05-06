@@ -4,13 +4,11 @@
 #' using reference based imputation as proposed by Carpenter et al. This approach
 #' can be used for imputation of missing data in randomised clinical trials.
 #'
-#' Due to uncongeniality between the imputation and analysis models, the resulting
-#' imputed datasets should be analysed using the
-#' \href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
 #' Unlike most implementations of reference based imputation, this implementation
 #' imputes conditional on the maximum likelihood estimates of the model parameters,
-#' rather than a posterior draw. This is ok provided the aforementioned bootstrapping
-#' approach is used for inference, rather than Rubin's rules.
+#' rather than a posterior draw. If one is interested in frequentist valid inferences,
+#' this is ok provided the bootstrapping used, for example with using the
+#' \href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
 #'
 #' Intermediate missing values are imputed assuming MAR, based on the mixed model fit
 #' to that patient's treatment arm. Monotone missing values are imputed using the specified
@@ -30,7 +28,7 @@
 #' @param baselineVars A string or vector of strings specfying the baseline variables. Often this will include
 #' the baseline measurement of the outcome
 #' @param baselinVisitInt TRUE/FALSE indicating whether to allow for interactions between each baseline variable
-#' and visit
+#' and visit. Default is TRUE.
 #' @param type A string specifying imputation type to use. Valid options are "MAR", "J2R"
 #'
 #' @param M Number of imputations to generate.
@@ -39,11 +37,11 @@
 #' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
 #' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
 #'
-#' @example data-raw/normUniExample.r
+#' @example data-raw/refBasedCtsExample.R
 #'
 #' @export
 refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=NULL,
-                        baselineVisitInt=FALSE, type="MAR", M=5) {
+                        baselineVisitInt=TRUE, type="MAR", M=5) {
   if (nVisits<2) {
     stop("You must have at least 2 post-baseline visits.")
   }
@@ -80,7 +78,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
                     na.action=na.omit, data=controlLong,
                     correlation=corSymm(form=~time | mlmiId),
                     weights=varIdent(form=~1|time))
-  print(summary(controlMod))
+
   controlCov <- mmrmCov(controlMod)
   #create matrix of covariate conditional means
   if (baselineVisitInt==FALSE) {
@@ -132,7 +130,6 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
       stop("You have specified interactions between baseline variables and time, but you have specified any baseline variables.")
     }
   }
-  print(head(meanMat))
 
   #create data frame of just the outcome columns
   yObs <- subset(controlWide, select=paste(outcomeVarStem, 1:nVisits, sep=""))

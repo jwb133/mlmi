@@ -117,7 +117,7 @@ test_that("Non-monotone MCAR imputation with no baseline covariates runs", {
 
 test_that("Non-monotone MCAR imputation with no baseline covariates is unbiased at final time point", {
   skip_on_cran()
-  expect_error({
+  expect_equal({
     set.seed(1234)
     n <- 50000
     #we will make correlation with baseline the same to visit 1 and visit 2
@@ -142,7 +142,7 @@ test_that("Non-monotone MCAR imputation with no baseline covariates is unbiased 
     imps <- refBasedCts(wideData, "y", 3, "trt", baselineVisitInt=FALSE, M=1)
 
     (abs(mean(imps$y3[imps$trt==1])-1.5)<0.1) & (abs(mean(imps$y3[imps$trt==0])-0)<0.1)
-  }, NA)
+  }, TRUE)
 })
 
 test_that("Monotone missingness MAR imputation is unbiased at final time point", {
@@ -269,7 +269,8 @@ test_that("Imputation with intermediate missingness runs", {
 })
 
 test_that("Imputation with intermediate missingness is unbiased", {
-  expect_error({
+  skip_on_cran()
+  expect_equal({
     set.seed(1234)
     n <- 50000
     #we will make correlation with baseline the same to visit 1 and visit 2
@@ -301,7 +302,7 @@ test_that("Imputation with intermediate missingness is unbiased", {
     wideData <- data.frame(id=1:n, trt=trt, y0=y0, y1=y1, y2=y2, y3=y3)
     imps <- refBasedCts(wideData, "y", 3, "trt", "y0", baselineVisitInt=FALSE, M=1)
     (abs(mean(imps$y3[imps$trt==1])-1.5)<0.1) & (abs(mean(imps$y3[imps$trt==0])-0)<0.1)
-  }, NA)
+  }, TRUE)
 })
 
 test_that("Monotone missingness J2R imputation with M=2 runs", {
@@ -347,7 +348,8 @@ test_that("Monotone missingness J2R imputation with M=2 runs", {
 
 
 test_that("J2R imputation Cro et al 2019 simulation study setup", {
-  expect_error({
+  skip_on_cran()
+  expect_equal({
     set.seed(1234)
     n <- 50000
     corr <- matrix(c(0.4, 0.2, 0.2, 0.2, 0.5, 0.2, 0.2, 0.2, 0.6), byrow=TRUE, nrow=3)
@@ -372,7 +374,7 @@ test_that("J2R imputation Cro et al 2019 simulation study setup", {
     wideData <- data.frame(id=1:n, trt=trt, y0=y0, y1=y1, y2=y2)
     imps <- refBasedCts(obsData=wideData, outcomeVarStem="y", nVisits=2, trtVar="trt", baselineVars="y0", type="J2R", baselineVisitInt=FALSE, M=1)
     (abs(mean(imps$y2[imps$trt==1])-2.4)<0.05)
-  }, NA)
+  }, TRUE)
 })
 
 test_that("If you pass a factor as a baseline variable, you get an error", {
@@ -415,7 +417,7 @@ test_that("If you pass a factor as a baseline variable, you get an error", {
 
     wideData <- data.frame(id=1:n, trt=trt, y0=factor(y0), y1=y1, y2=y2, y3=y3)
     imps <- refBasedCts(wideData, "y", 3, "trt", "y0", baselineVisitInt=FALSE, M=2)
-  }, NA)
+  })
 })
 
 test_that("Monotone missingness MAR imputation with baseline time interactions runs", {
@@ -501,7 +503,7 @@ test_that("Monotone missingness MAR imputation with baseline time interactions i
     wideData <- data.frame(id=1:n, trt=trt, y0=y0, y1=y1, y2=y2, y3=y3)
     imps <- refBasedCts(wideData, "y", 3, "trt", "y0", baselineVisitInt=TRUE, M=1)
     (abs(mean(imps$y3[imps$trt==1])-1.5)<0.1) & (abs(mean(imps$y3[imps$trt==0])-0)<0.1)
-  }, NA)
+  }, TRUE)
 })
 
 test_that("Monotone missingness MAR imputation with baseline time interactions two baselines runs", {
@@ -552,7 +554,6 @@ test_that("Monotone missingness MAR imputation with baseline time interactions t
   expect_equal({
     set.seed(1234)
     n <- 50000
-    #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=5, ncol=5) + diag(0.5, nrow=5)
     corr[,1] <- c(1.5, 1, 0.75, 0.5, 0.25)
     corr[1,] <- corr[,1]
@@ -589,5 +590,5 @@ test_that("Monotone missingness MAR imputation with baseline time interactions t
     wideData <- data.frame(id=1:n, trt=trt, v=v, y0=y0, y1=y1, y2=y2, y3=y3)
     imps <- refBasedCts(wideData, "y", 3, "trt", c("v", "y0"), baselineVisitInt=TRUE, M=1)
     (abs(mean(imps$y3[imps$trt==1])-1.5)<0.1) & (abs(mean(imps$y3[imps$trt==0])-0)<0.1)
-  }, NA)
+  }, TRUE)
 })
