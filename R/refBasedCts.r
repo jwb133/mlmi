@@ -80,7 +80,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
                     na.action=na.omit, data=controlLong,
                     correlation=corSymm(form=~time | mlmiId),
                     weights=varIdent(form=~1|time))
-
+  print(summary(controlMod))
   controlCov <- mmrmCov(controlMod)
   #create matrix of covariate conditional means
   if (baselineVisitInt==FALSE) {
@@ -111,9 +111,23 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
         meanMat[,i] <- meanMat[,i] + coef(controlMod)[i] + controlWide[,baselineVars]*coef(controlMod)[nVisits+i]
       }
     } else if (length(baselineVars)>1) {
-      stop("Not done this yet")
-      meanMat <- as.matrix(subset(controlWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
-                                                                               dim=c(length(baselineVars), 1))
+      #intercept + covariate effects at visit 1
+      meanMat <- rep(coef(controlMod)[1], controlN)
+      for (i in 1:length(baselineVars)) {
+        meanMat <- meanMat + controlWide[,baselineVars[i]]*coef(controlMod)[nVisits+i]
+      }
+      meanMat <- array(rep(meanMat, nVisits),dim=c(controlN,nVisits))
+
+      for (i in 2:nVisits) {
+        #add in visit effect first
+        meanMat[,i] <- meanMat[,i] + coef(controlMod)[i]
+        #add in baseline visit interaction effects
+        for (j in 1:length(baselineVars)) {
+          #figure out which coefficient we need for this visit and baseline covariate
+          coefIndexNeeded <- nVisits + length(baselineVars) + (nVisits-1)*(j-1) + (i-1)
+          meanMat[,i] <- meanMat[,i] + controlWide[,baselineVars[j]]*coef(controlMod)[coefIndexNeeded]
+        }
+      }
     } else {
       stop("You have specified interactions between baseline variables and time, but you have specified any baseline variables.")
     }
@@ -235,12 +249,31 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
         activeMeanMat[,i] <- activeMeanMat[,i] + coef(activeMod)[i] + activeWide[,baselineVars]*coef(activeMod)[nVisits+i]
       }
     } else if (length(baselineVars)>1) {
-      stop("Not done this yet")
-      meanMat <- as.matrix(subset(controlWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
-                                                                               dim=c(length(baselineVars), 1))
+      #intercept + covariate effects at visit 1
+      controlMeanMat <- rep(coef(controlMod)[1], activeN)
+      activeMeanMat <- rep(coef(activeMod)[1], activeN)
+
+      for (i in 1:length(baselineVars)) {
+        controlMeanMat <- controlMeanMat + activeWide[,baselineVars[i]]*coef(controlMod)[nVisits+i]
+        activeMeanMat <- activeMeanMat + activeWide[,baselineVars[i]]*coef(activeMod)[nVisits+i]
+      }
+      controlMeanMat <- array(rep(controlMeanMat, nVisits),dim=c(activeN,nVisits))
+      activeMeanMat <- array(rep(activeMeanMat, nVisits),dim=c(activeN,nVisits))
+
+      for (i in 2:nVisits) {
+        #add in visit effect first
+        controlMeanMat[,i] <- controlMeanMat[,i] + coef(controlMod)[i]
+        activeMeanMat[,i] <- activeMeanMat[,i] + coef(activeMod)[i]
+        #add in baseline visit interaction effects
+        for (j in 1:length(baselineVars)) {
+          #figure out which coefficient we need for this visit and baseline covariate
+          coefIndexNeeded <- nVisits + length(baselineVars) + (nVisits-1)*(j-1) + (i-1)
+          controlMeanMat[,i] <- controlMeanMat[,i] + activeWide[,baselineVars[j]]*coef(controlMod)[coefIndexNeeded]
+          activeMeanMat[,i] <- activeMeanMat[,i] + activeWide[,baselineVars[j]]*coef(activeMod)[coefIndexNeeded]
+        }
+      }
     }
   }
-
 
   #create data frame of just the outcome columns
   yObs <- subset(activeWide, select=paste(outcomeVarStem, 1:nVisits, sep=""))
