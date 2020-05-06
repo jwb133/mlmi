@@ -1,7 +1,8 @@
 #' Reference based imputation of repeated measures continuous data
 #'
-#' Performs multiple imputation of a repeatedly measured continuous endpoint
-#' using reference based imputation as proposed by Carpenter et al. This approach
+#' Performs multiple imputation of a repeatedly measured continuous endpoint in a
+#' randomised clinical trial
+#' using reference based imputation as proposed by \href{https://doi.org/10.1080/10543406.2013.834911}{Carpenter et al (2013)}. This approach
 #' can be used for imputation of missing data in randomised clinical trials.
 #'
 #' Unlike most implementations of reference based imputation, this implementation
@@ -17,25 +18,23 @@
 #' Baseline covariates must be numeric variables. If you have factor variables you must
 #' code these into suitable dummy indicators and pass these to the function.
 #'
-#' THINGS TO DO:
-#' 1) option for INTERACTIONS BETWEEN BASELINE AND VISIT
-#' 2) implement copy reference method
-#'
 #' @param obsData The data frame to be imputed.
 #' @param outcomeVarStem String for stem of outcome variable name, e.g. y if y1, y2, y3 are the outcome columns
 #' @param nVisits The integer number of visits (not including baseline)
-#' @param trtVar The string variable name of the treatment variable
+#' @param trtVar The string variable name of the randomised treatment group variable
 #' @param baselineVars A string or vector of strings specfying the baseline variables. Often this will include
 #' the baseline measurement of the outcome
-#' @param baselinVisitInt TRUE/FALSE indicating whether to allow for interactions between each baseline variable
+#' @param baselineVisitInt TRUE/FALSE indicating whether to allow for interactions between each baseline variable
 #' and visit. Default is TRUE.
 #' @param type A string specifying imputation type to use. Valid options are "MAR", "J2R"
 #'
 #' @param M Number of imputations to generate.
 #' @return A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 #'
-#' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
-#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+#' @references Carpenter JR, Roger JH, Kenward MG. Analysis of Longitudinal Trials with Protocol Deviation:
+#' A Framework for Relevant, Accessible Assumptions, and Inference via Multiple Imputation. (2013) 23(6) 1352-1371
+#' @references von Hippel PT & Bartlett JW (2019) Maximum likelihood multiple imputation: Faster imputations and
+#' consistent standard errors without posterior draws \href{https://arxiv.org/abs/1210.0870v10}{arXiv:1210.0870v10}.
 #'
 #' @example data-raw/refBasedCtsExample.R
 #'
@@ -76,16 +75,16 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
   }
   controlMod <- nlme::gls(mixedFormula,
                     na.action=na.omit, data=controlLong,
-                    correlation=corSymm(form=~time | mlmiId),
-                    weights=varIdent(form=~1|time))
+                    correlation=nlme::corSymm(form=~time | mlmiId),
+                    weights=nlme::varIdent(form=~1|time))
 
   controlCov <- mmrmCov(controlMod)
   #create matrix of covariate conditional means
   if (baselineVisitInt==FALSE) {
     if (length(baselineVars)==1) {
-      meanMat <- controlWide[,baselineVars]*tail(coef(controlMod),1)
+      meanMat <- controlWide[,baselineVars]*utils::tail(coef(controlMod),1)
     } else if (length(baselineVars)>1) {
-      meanMat <- as.matrix(subset(controlWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
+      meanMat <- as.matrix(subset(controlWide, select=baselineVars)) %*% array(utils::tail(coef(controlMod),length(baselineVars)),
                                                                     dim=c(length(baselineVars), 1))
     } else {
       meanMat <- rep(0, controlN)
@@ -153,7 +152,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
           dim=c(length(visitsToImpute),length(visitsObs))) %*%
           solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
 
-        yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+        yImp[rowsToImpute,visitsToImpute] <- MASS::mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
         #calculate mean conditional on observed outcomes
         condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
           solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
@@ -166,7 +165,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
       for (pat in 1:nrow(controlMissPat$monotonePatterns)) {
         if (sum(controlMissPat$monotonePatterns[pat,])==0) {
           #every visit missing
-          yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
+          yImp[is.na(yObs[,1]),] <- MASS::mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
           yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + meanMat[is.na(yObs[,1]),]
         } else if (sum(controlMissPat$monotonePatterns[pat,]) < nVisits) {
           visitsToImpute <- as.numeric(which(controlMissPat$monotonePatterns[pat,]==0))
@@ -178,7 +177,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
                                                                        dim=c(length(visitsToImpute),length(visitsObs))) %*%
             solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
 
-          yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+          yImp[rowsToImpute,visitsToImpute] <- MASS::mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
           #calculate mean conditional on observed outcomes
           condMean <- meanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - meanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
             solve(controlCov[visitsObs,visitsObs]) %*% t(array(controlCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
@@ -201,20 +200,20 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
 
   activeMod <- nlme::gls(mixedFormula,
                           na.action=na.omit, data=activeLong,
-                          correlation=corSymm(form=~time | mlmiId),
-                          weights=varIdent(form=~1|time))
+                          correlation=nlme::corSymm(form=~time | mlmiId),
+                          weights=nlme::varIdent(form=~1|time))
   #print(summary(activeMod))
 
   activeCov <- mmrmCov(activeMod)
   #create matrix of covariate conditional means for active patients under both active and control model fits
   if (baselineVisitInt==FALSE) {
     if (length(baselineVars)==1) {
-      activeMeanMat <- activeWide[,baselineVars]*tail(coef(activeMod),1)
-      controlMeanMat <- activeWide[,baselineVars]*tail(coef(controlMod),1)
+      activeMeanMat <- activeWide[,baselineVars]*utils::tail(coef(activeMod),1)
+      controlMeanMat <- activeWide[,baselineVars]*utils::tail(coef(controlMod),1)
     } else if (length(baselineVars)>1) {
-      activeMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(tail(coef(activeMod),length(baselineVars)),
+      activeMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(utils::tail(coef(activeMod),length(baselineVars)),
                                                                     dim=c(length(baselineVars), 1))
-      controlMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(tail(coef(controlMod),length(baselineVars)),
+      controlMeanMat <- as.matrix(subset(activeWide, select=baselineVars)) %*% array(utils::tail(coef(controlMod),length(baselineVars)),
                                                                          dim=c(length(baselineVars), 1))
     } else {
       #no baseline covariates
@@ -294,7 +293,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
                                                                      dim=c(length(visitsToImpute),length(visitsObs))) %*%
           solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
 
-        yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+        yImp[rowsToImpute,visitsToImpute] <- MASS::mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
         #calculate mean conditional on observed outcomes
         condMean <- activeMeanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - activeMeanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
           solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
@@ -308,11 +307,11 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
         if (sum(activeMissPat$monotonePatterns[pat,])==0) {
           #every visit missing
           if (type=="J2R") {
-            yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
+            yImp[is.na(yObs[,1]),] <- MASS::mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=controlCov)
             yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + controlMeanMat[is.na(yObs[,1]),]
           } else {
             #MAR
-            yImp[is.na(yObs[,1]),] <- mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=activeCov)
+            yImp[is.na(yObs[,1]),] <- MASS::mvrnorm(n=sum(is.na(yObs[,1])), mu=rep(0,nVisits), Sigma=activeCov)
             yImp[is.na(yObs[,1]),] <- yImp[is.na(yObs[,1]),] + activeMeanMat[is.na(yObs[,1]),]
           }
         } else if (sum(activeMissPat$monotonePatterns[pat,]) < nVisits) {
@@ -339,7 +338,7 @@ refBasedCts <- function(obsData, outcomeVarStem, nVisits, trtVar, baselineVars=N
             condMean <- activeMeanMat[rowsToImpute,visitsToImpute] + array(as.matrix(yImp[rowsToImpute,visitsObs]) - activeMeanMat[rowsToImpute,visitsObs],dim=c(length(rowsToImpute),length(visitsObs))) %*%
               solve(activeCov[visitsObs,visitsObs]) %*% t(array(activeCov[visitsToImpute,visitsObs], dim=c(length(visitsToImpute),length(visitsObs))))
           }
-          yImp[rowsToImpute,visitsToImpute] <- mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
+          yImp[rowsToImpute,visitsToImpute] <- MASS::mvrnorm(n=length(rowsToImpute), mu=rep(0,length(visitsToImpute)), Sigma=condVar)
           yImp[rowsToImpute,visitsToImpute] <- yImp[rowsToImpute,visitsToImpute] + condMean
         }
       }
@@ -416,7 +415,7 @@ missingnessPatterns <- function(yObs) {
 #positions on intermediate missing values
 intermediateDetect <- function(obsVec) {
   missPos <- which(obsVec==0)
-  lastObsPos <- tail(which(obsVec==1),1)
+  lastObsPos <- utils::tail(which(obsVec==1),1)
   if (length(missPos[missPos<lastObsPos])>0) {
     missPos[missPos<lastObsPos]
   } else {

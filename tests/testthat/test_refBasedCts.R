@@ -11,7 +11,7 @@ test_that("Monotone missingness MAR imputation with M=2 runs", {
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -53,7 +53,7 @@ test_that("Monotone missingness MAR imputation with M=2 and 2 baseline covariate
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=5, ncol=5) + diag(0.5, nrow=5)
     corr
-    data <- mvrnorm(n, mu=c(2,0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(2,0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
     v <- data[,1]
@@ -94,7 +94,7 @@ test_that("Non-monotone MCAR imputation with no baseline covariates runs", {
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=3, ncol=3) + diag(0.5, nrow=3)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
     y1 <- data[,1]
@@ -122,7 +122,7 @@ test_that("Non-monotone MCAR imputation with no baseline covariates is unbiased 
     n <- 50000
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=3, ncol=3) + diag(0.5, nrow=3)
-    data <- mvrnorm(n, mu=c(0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
     y1 <- data[,1]
@@ -153,7 +153,7 @@ test_that("Monotone missingness MAR imputation is unbiased at final time point",
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -197,7 +197,7 @@ test_that("Monotone missingness MAR imputation with 2 baseline covariates is unb
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=5, ncol=5) + diag(0.5, nrow=5)
     corr
-    data <- mvrnorm(n, mu=c(2,0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(2,0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
     v <- data[,1]
@@ -240,7 +240,7 @@ test_that("Imputation with intermediate missingness runs", {
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -276,7 +276,7 @@ test_that("Imputation with intermediate missingness is unbiased", {
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -312,7 +312,7 @@ test_that("Monotone missingness J2R imputation with M=2 runs", {
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -354,7 +354,7 @@ test_that("J2R imputation Cro et al 2019 simulation study setup", {
     n <- 50000
     corr <- matrix(c(0.4, 0.2, 0.2, 0.2, 0.5, 0.2, 0.2, 0.2, 0.6), byrow=TRUE, nrow=3)
     corr
-    data <- mvrnorm(n, mu=c(2, 1.95, 1.9), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(2, 1.95, 1.9), Sigma=corr)
 
     trt <- c(rep(0,n/2), rep(1,n/2))
 
@@ -384,7 +384,7 @@ test_that("If you pass a factor as a baseline variable, you get an error", {
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -427,7 +427,7 @@ test_that("Monotone missingness MAR imputation with baseline time interactions r
     #we will make correlation with baseline the same to visit 1 and visit 2
     corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -471,7 +471,7 @@ test_that("Monotone missingness MAR imputation with baseline time interactions i
     corr[,1] <- c(1.5, 1, 0.75, 0.25)
     corr[1,] <- corr[,1]
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
 
@@ -515,7 +515,7 @@ test_that("Monotone missingness MAR imputation with baseline time interactions t
     corr[,1] <- c(1.5, 1, 0.75, 0.5, 0.25)
     corr[1,] <- corr[,1]
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
     v <- data[,1]
@@ -558,7 +558,7 @@ test_that("Monotone missingness MAR imputation with baseline time interactions t
     corr[,1] <- c(1.5, 1, 0.75, 0.5, 0.25)
     corr[1,] <- corr[,1]
     corr
-    data <- mvrnorm(n, mu=c(0,0,0,0,0), Sigma=corr)
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0,0), Sigma=corr)
 
     trt <- 1*(runif(n)<0.5)
     v <- data[,1]

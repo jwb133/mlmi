@@ -5,7 +5,7 @@
 \title{Reference based imputation of repeated measures continuous data}
 \usage{
 refBasedCts(obsData, outcomeVarStem, nVisits, trtVar,
-  baselineVars = NULL, baselineVisitInt = FALSE, type = "MAR",
+  baselineVars = NULL, baselineVisitInt = TRUE, type = "MAR",
   M = 5)
 }
 \arguments{
@@ -15,34 +15,33 @@ refBasedCts(obsData, outcomeVarStem, nVisits, trtVar,
 
 \item{nVisits}{The integer number of visits (not including baseline)}
 
-\item{trtVar}{The string variable name of the treatment variable}
+\item{trtVar}{The string variable name of the randomised treatment group variable}
 
 \item{baselineVars}{A string or vector of strings specfying the baseline variables. Often this will include
 the baseline measurement of the outcome}
 
+\item{baselineVisitInt}{TRUE/FALSE indicating whether to allow for interactions between each baseline variable
+and visit. Default is TRUE.}
+
 \item{type}{A string specifying imputation type to use. Valid options are "MAR", "J2R"}
 
 \item{M}{Number of imputations to generate.}
-
-\item{baselinVisitInt}{TRUE/FALSE indicating whether to allow for interactions between each baseline variable
-and visit}
 }
 \value{
 A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 }
 \description{
-Performs multiple imputation of a repeatedly measured continuous endpoint
-using reference based imputation as proposed by Carpenter et al. This approach
+Performs multiple imputation of a repeatedly measured continuous endpoint in a
+randomised clinical trial
+using reference based imputation as proposed by \href{https://doi.org/10.1080/10543406.2013.834911}{Carpenter et al (2013)}. This approach
 can be used for imputation of missing data in randomised clinical trials.
 }
 \details{
-Due to uncongeniality between the imputation and analysis models, the resulting
-imputed datasets should be analysed using the
-\href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
 Unlike most implementations of reference based imputation, this implementation
 imputes conditional on the maximum likelihood estimates of the model parameters,
-rather than a posterior draw. This is ok provided the aforementioned bootstrapping
-approach is used for inference, rather than Rubin's rules.
+rather than a posterior draw. If one is interested in frequentist valid inferences,
+this is ok provided the bootstrapping used, for example with using the
+\href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
 
 Intermediate missing values are imputed assuming MAR, based on the mixed model fit
 to that patient's treatment arm. Monotone missing values are imputed using the specified
@@ -50,24 +49,42 @@ imputation type.
 
 Baseline covariates must be numeric variables. If you have factor variables you must
 code these into suitable dummy indicators and pass these to the function.
-
-THINGS TO DO:
-1) option for INTERACTIONS BETWEEN BASELINE AND VISIT
-2) implement copy reference method
 }
 \examples{
-#simulate a dataset with one partially observed (conditionally) normal variable
-set.seed(1234)
-n <- 100
-x <- rnorm(n)
-y <- x+rnorm(n)
-x[runif(n)<0.25] <- NA
-temp <- data.frame(x=x,y=y)
+#take a look at ctsTrialWide data
+head(ctsTrialWide)
 
-#impute using normImp
-imps <- normUniImp(temp, y~x, M=10, pd=FALSE)
+#impute the missing outcome values twice assuming MAR
+imps <- refBasedCts(ctsTrialWide, outcomeVarStem="y", nVisits=3, trtVar="trt",
+                    baselineVars=c("v", "y0"), type="MAR", M=2)
+
+#now impute using jump to reference method
+imps <- refBasedCts(ctsTrialWide, outcomeVarStem="y", nVisits=3, trtVar="trt",
+                    baselineVars=c("v", "y0"), type="J2R", M=2)
+
+#for frequentist valid inferences we use bootstrapping from the bootImpute package
+\dontrun{
+  #bootstrap 10 times using 2 imputations per bootstrap. Note that to do this
+  #we specify nImp=2 to bootImpute by M=1 to the refBasedCts function.
+  #Also, 10 bootstraps is far too small to get reliable inferences. To do this
+  #for real you would want to use a lot more (e.g. at least nBoot=1000).
+  library(bootImpute)
+  bootImps <- bootImpute(ctsTrialWide, refBasedCts, nBoot=10, nImp=2,
+                         outcomeVarStem="y", nVisits=3, trtVar="trt",
+                         baselineVars=c("v", "y0"), type="J2R", M=1)
+
+  #write a small wrapper function to perform an ANCOVA at the final time point
+  ancova <- function(inputData) {
+    coef(lm(y3~v+y0+trt, data=inputData))
+  }
+  ests <- bootImputeAnalyse(bootImps, ancova)
+  ests
+}
 }
 \references{
-von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
-more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+Carpenter JR, Roger JH, Kenward MG. Analysis of Longitudinal Trials with Protocol Deviation:
+A Framework for Relevant, Accessible Assumptions, and Inference via Multiple Imputation. (2013) 23(6) 1352-1371
+
+von Hippel PT & Bartlett JW (2019) Maximum likelihood multiple imputation: Faster imputations and
+consistent standard errors without posterior draws \href{https://arxiv.org/abs/1210.0870v10}{arXiv:1210.0870v10}.
 }

@@ -10,7 +10,9 @@
   \item{trt}{A numeric 0/1 variable indicating control or active treatment group}
   \item{v}{A baseline covariate}
   \item{y0}{Baseline measurement of the outcome variable}
-  \item{y1-y3}{Outcome measurements at visits 1 to 3}
+  \item{y1}{Outcome measurement at visit 1}
+  \item{y2}{Outcome measurement at visit 2}
+  \item{y3}{Outcome measurement at visit 3}
 }}
 \usage{
 ctsTrialWide

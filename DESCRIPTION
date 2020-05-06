@@ -19,7 +19,8 @@ Imports:
     mix,
     Matrix,
     stats,
-    utils
+    utils,
+    nlme
 Suggests:
     bootImpute,
     testthat
