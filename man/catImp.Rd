@@ -4,8 +4,15 @@
 \alias{catImp}
 \title{Imputation for categorical variables using log linear models}
 \usage{
-catImp(obsData, M = 10, pd = FALSE, type = 1, margins = NULL,
-  steps = 100, rseed)
+catImp(
+  obsData,
+  M = 10,
+  pd = FALSE,
+  type = 1,
+  margins = NULL,
+  steps = 100,
+  rseed
+)
 }
 \arguments{
 \item{obsData}{The data frame to be imputed. Variables must be coded such that

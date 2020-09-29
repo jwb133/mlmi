@@ -4,8 +4,7 @@
 \alias{scoreBased}
 \title{Score based variance estimation for multiple imputation}
 \usage{
-scoreBased(imps, analysisFun, scoreFun, pd = NULL, dfComplete = NULL,
-  ...)
+scoreBased(imps, analysisFun, scoreFun, pd = NULL, dfComplete = NULL, ...)
 }
 \arguments{
 \item{imps}{A list of imputed datasets produced by one of the imputation functions

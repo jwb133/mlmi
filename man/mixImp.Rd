@@ -5,9 +5,18 @@
 \title{Imputation for a mixture of continuous and categorical variables using
 the general location model.}
 \usage{
-mixImp(obsData, nCat, M = 10, pd = FALSE, marginsType = 1,
-  margins = NULL, designType = 1, design = NULL, steps = 100,
-  rseed)
+mixImp(
+  obsData,
+  nCat,
+  M = 10,
+  pd = FALSE,
+  marginsType = 1,
+  margins = NULL,
+  designType = 1,
+  design = NULL,
+  steps = 100,
+  rseed
+)
 }
 \arguments{
 \item{obsData}{The data frame to be imputed. The categorical variables must be

@@ -4,9 +4,16 @@
 \alias{refBasedCts}
 \title{Reference based imputation of repeated measures continuous data}
 \usage{
-refBasedCts(obsData, outcomeVarStem, nVisits, trtVar,
-  baselineVars = NULL, baselineVisitInt = TRUE, type = "MAR",
-  M = 5)
+refBasedCts(
+  obsData,
+  outcomeVarStem,
+  nVisits,
+  trtVar,
+  baselineVars = NULL,
+  baselineVisitInt = TRUE,
+  type = "MAR",
+  M = 5
+)
 }
 \arguments{
 \item{obsData}{The data frame to be imputed.}
@@ -15,7 +22,8 @@ refBasedCts(obsData, outcomeVarStem, nVisits, trtVar,
 
 \item{nVisits}{The integer number of visits (not including baseline)}
 
-\item{trtVar}{The string variable name of the randomised treatment group variable}
+\item{trtVar}{The string variable name of the randomised treatment group variable. The reference arm is assumed
+to correspond to \code{trtVar==0}.}
 
 \item{baselineVars}{A string or vector of strings specfying the baseline variables. Often this will include
 the baseline measurement of the outcome}

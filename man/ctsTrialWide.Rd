@@ -4,7 +4,8 @@
 \name{ctsTrialWide}
 \alias{ctsTrialWide}
 \title{Simulated example data with continuous outcome measured repeatedly over time}
-\format{A data frame with 500 rows and 7 variables:
+\format{
+A data frame with 500 rows and 7 variables:
 \describe{
   \item{id}{ID for individual}
   \item{trt}{A numeric 0/1 variable indicating control or active treatment group}
@@ -13,7 +14,8 @@
   \item{y1}{Outcome measurement at visit 1}
   \item{y2}{Outcome measurement at visit 2}
   \item{y3}{Outcome measurement at visit 3}
-}}
+}
+}
 \usage{
 ctsTrialWide
 }

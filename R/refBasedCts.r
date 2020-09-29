@@ -21,7 +21,8 @@
 #' @param obsData The data frame to be imputed.
 #' @param outcomeVarStem String for stem of outcome variable name, e.g. y if y1, y2, y3 are the outcome columns
 #' @param nVisits The integer number of visits (not including baseline)
-#' @param trtVar The string variable name of the randomised treatment group variable
+#' @param trtVar The string variable name of the randomised treatment group variable. The reference arm is assumed
+#' to correspond to \code{trtVar==0}.
 #' @param baselineVars A string or vector of strings specfying the baseline variables. Often this will include
 #' the baseline measurement of the outcome
 #' @param baselineVisitInt TRUE/FALSE indicating whether to allow for interactions between each baseline variable
