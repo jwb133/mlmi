@@ -268,6 +268,37 @@ test_that("Imputation with intermediate missingness runs", {
   }, NA)
 })
 
+test_that("Imputation with only one intermediate missingness pattern runs", {
+  expect_error({
+    set.seed(1234)
+    n <- 500
+    #we will make correlation with baseline the same to visit 1 and visit 2
+    corr <- matrix(1, nrow=4, ncol=4) + diag(0.5, nrow=4)
+    corr
+    data <- MASS::mvrnorm(n, mu=c(0,0,0,0), Sigma=corr)
+
+    trt <- 1*(runif(n)<0.5)
+
+    y0 <- data[,1]
+    y1 <- data[,2]
+    y2 <- data[,3]
+    y3 <- data[,4]
+
+    #add in effect of treatment
+    y1 <- y1+trt*0.5
+    y2 <- y2+trt*1
+    y3 <- y3+trt*1.5
+
+    #now make some values missing MCAR, not necessarily monotone
+    r1 <- 1*(runif(n)<0.25)
+
+    y1[(r1==0)] <- NA
+
+    wideData <- data.frame(id=1:n, trt=trt, y0=y0, y1=y1, y2=y2, y3=y3)
+    imps <- refBasedCts(wideData, "y", 3, "trt", "y0", baselineVisitInt=FALSE, M=2)
+  }, NA)
+})
+
 test_that("Imputation with intermediate missingness is unbiased", {
   skip_on_cran()
   expect_equal({

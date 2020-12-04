@@ -395,7 +395,7 @@ missingnessPatterns <- function(yObs) {
     if (sum(nonMonotoneInd)>1) {
       nonMonotonePatterns <- uniquePatterns[nonMonotoneInd==TRUE,]
     } else {
-      nonMonotonePatterns <- matrix(uniquePatterns[nonMonotoneInd==TRUE,], nrow=1)
+      nonMonotonePatterns <- t(as.matrix(uniquePatterns[nonMonotoneInd==TRUE,]))
     }
   }
   if (sum(monotoneInd)==0) {
@@ -406,7 +406,7 @@ missingnessPatterns <- function(yObs) {
     if (sum(monotoneInd)>1) {
       monotonePatterns <- uniquePatterns[monotoneInd==TRUE,]
     } else {
-      monotonePatterns <- matrix(uniquePatterns[monotoneInd==TRUE,], nrow=1)
+      monotonePatterns <- t(as.matrix(uniquePatterns[monotoneInd==TRUE,]))
     }
   }
   list(monotonePatterns=monotonePatterns, nonMonotonePatterns=nonMonotonePatterns)
