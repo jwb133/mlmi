@@ -41,7 +41,7 @@ A list of imputed datasets, or if \code{M=1}, just the imputed data frame.
 \description{
 Performs multiple imputation of a repeatedly measured continuous endpoint in a
 randomised clinical trial
-using reference based imputation as proposed by \href{https://doi.org/10.1080/10543406.2013.834911}{Carpenter et al (2013)}. This approach
+using reference based imputation as proposed by \doi{10.1080/10543406.2013.834911}{Carpenter et al (2013)}. This approach
 can be used for imputation of missing data in randomised clinical trials.
 }
 \details{
