@@ -21,10 +21,10 @@
 #' degrees of freedom for each parameter.
 #'
 #' @references Wang N., Robins J.M. (1998) Large-sample theory for parametric multiple imputation procedures.
-#' Biometrika 85(4): 935-948. \href{https://doi.org/10.1093/biomet/85.4.935}{https://doi.org/10.1093/biomet/85.4.935}.
+#' Biometrika 85(4): 935-948. \doi{10.1093/biomet/85.4.935}.
 #'
-#' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
-#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+#' @references von Hippel P.T. and Bartlett J.W. (2019) Maximum likelihood multiple imputation: faster,
+#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v10}{arXiv:1210.0870v10}.
 #'
 #' @example data-raw/sbExample.r
 #'

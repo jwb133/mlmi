@@ -19,10 +19,10 @@
 #' degrees of freedom for each parameter.
 #'
 #' @references Barnard J, Rubin DB. Miscellanea. Small-sample degrees of freedom with multiple imputation.
-#' Biometrika 1999; 86(4): 948-955. \url{https://doi.org/10.1093/biomet/86.4.948}
+#' Biometrika 1999; 86(4): 948-955. \doi{10.1093/biomet/86.4.948}
 #'
-#' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
-#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+#' @references von Hippel P.T. and Bartlett J.W. (2019) Maximum likelihood multiple imputation: faster,
+#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v10}{arXiv:1210.0870v10}.
 #'
 #' @example data-raw/wbExample.r
 #'
