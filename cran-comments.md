@@ -1,6 +1,8 @@
 ## Test environments
 * local Windows install, R 4.0.5
-* win-builder on devel version  (2021-04-18 r80182)
+* Travis-CI on R version 4.0.2 (2020-06-22)
+* win-builder on devel 4.1.0 alpha (2021-04-25 r80223)
+* win-builder on release version 4.0.5
 
 ## R CMD check results
-Note on checking for future file timestamps being unable to verify current time, which I understand is due to time server being down.
+On CRAN the previous version has a note: 'LazyData' is specified without a 'data' directory but I'm not sure how to fix this. CRAN check on r-devel-windows-x86_64-gcc10-UCRT showing only showing some packages not available, but I think they are still available.
