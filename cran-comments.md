@@ -5,4 +5,4 @@
 * win-builder on release version 4.0.5
 
 ## R CMD check results
-On CRAN the previous version has a note: 'LazyData' is specified without a 'data' directory but I'm not sure how to fix this. CRAN check on r-devel-windows-x86_64-gcc10-UCRT showing only showing some packages not available, but I think they are still available.
+On CRAN the previous version has a note: 'LazyData' is specified without a 'data' directory, but I do have a data directory, so I'm not sure what's happening here. CRAN check on r-devel-windows-x86_64-gcc10-UCRT showing only showing some packages not available, but I think they are still available. Many thanks.
