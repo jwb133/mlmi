@@ -1,16 +1,16 @@
 Package: mlmi
 Type: Package
 Title: Maximum Likelihood Multiple Imputation
-Version: 1.1.0
+Version: 1.1.1
 Author: Jonathan Bartlett
 Maintainer: Jonathan Bartlett <j.w.bartlett@bath.ac.uk>
-Description: Implements so called Maximum Likelihood Multiple Imputation as described by von Hippel and Bartlett (2019) <arXiv:1210.0870v10>. A number of different imputations are available, by utilising the 'norm', 'cat' and 'mix' packages. Inferences can be performed either using combination rules similar to Rubin's or using a likelihood score based approach based on theory by Wang and Robins (1998) <doi:10.1093/biomet/85.4.935>.
+Description: Implements so called Maximum Likelihood Multiple Imputation as described by von Hippel and Bartlett (2021) <doi:10.1214/20-STS793>. A number of different imputations are available, by utilising the 'norm', 'cat' and 'mix' packages. Inferences can be performed either using combination rules similar to Rubin's or using a likelihood score based approach based on theory by Wang and Robins (1998) <doi:10.1093/biomet/85.4.935>.
 Depends:
     R (>= 2.10)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Imports:
     MASS,
     gsl,
