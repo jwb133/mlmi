@@ -1,7 +1,7 @@
 #' Score based variance estimation for multiple imputation
 #'
 #' This function implements the score based variance estimation approach described by von Hippel
-#' (2018), which is based on earlier work by Wang and Robins (1998).
+#' and Bartlett (2021), which is based on earlier work by Wang and Robins (1998).
 #'
 #' @param imps A list of imputed datasets produced by one of the imputation functions
 #' in \code{mlmi} or another package.
@@ -23,8 +23,8 @@
 #' @references Wang N., Robins J.M. (1998) Large-sample theory for parametric multiple imputation procedures.
 #' Biometrika 85(4): 935-948. \doi{10.1093/biomet/85.4.935}.
 #'
-#' @references von Hippel P.T. and Bartlett J.W. (2019) Maximum likelihood multiple imputation: faster,
-#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v10}{arXiv:1210.0870v10}.
+#' @references von Hippel P.T. and Bartlett J.W. Maximum likelihood multiple imputation: faster,
+#' more efficient imputation without posterior draws. Statistical Science 2021; 36(3) 400-420 \doi{10.1214/20-STS793}.
 #'
 #' @example data-raw/sbExample.r
 #'

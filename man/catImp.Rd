@@ -90,6 +90,6 @@ imps <- catImp(temp, M=10, pd=FALSE, type=3, rseed=4423)
 Schafer J.L. (1997). Analysis of incomplete multivariate data.
 Chapman & Hall, Boca Raton, Florida, USA.
 
-von Hippel P.T. and Bartlett J.W. (2021) Maximum likelihood multiple imputation: faster,
-more efficient imputation without posterior draws. \href{https://doi.org/10.1214/20-STS793}{doi:10.1214/20-STS793}.
+von Hippel P.T. and Bartlett J.W. Maximum likelihood multiple imputation: faster,
+more efficient imputation without posterior draws. Statistical Science 2021; 36(3) 400-420 \doi{10.1214/20-STS793}.
 }

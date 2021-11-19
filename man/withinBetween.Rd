@@ -30,7 +30,8 @@ degrees of freedom for each parameter.
 \description{
 This function implements the within-between variance estimation approach. If the imputations
 were generated using posterior draws, it implements the approach proposed by Barnard & Rubin (1999).
-If posterior draws were not used, it implements the WB approach described by von Hippel (2018).
+If posterior draws were not used, it implements the WB approach described by von Hippel and
+Bartlett (2021).
 }
 \examples{
 #simulate a partially observed dataset
@@ -57,6 +58,6 @@ withinBetween(imps,analysisFun, dfComplete=c(n-2,n-2))
 Barnard J, Rubin DB. Miscellanea. Small-sample degrees of freedom with multiple imputation.
 Biometrika 1999; 86(4): 948-955. \doi{10.1093/biomet/86.4.948}
 
-von Hippel P.T. and Bartlett J.W. (2019) Maximum likelihood multiple imputation: faster,
-more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v10}{arXiv:1210.0870v10}.
+von Hippel P.T. and Bartlett J.W. Maximum likelihood multiple imputation: faster,
+more efficient imputation without posterior draws. Statistical Science 2021; 36(3) 400-420 \doi{10.1214/20-STS793}.
 }

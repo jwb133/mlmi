@@ -65,7 +65,7 @@ This function performs multiple imputation under a general location model
 as described by Schafer (1997), using the \code{mix} package. Imputation can
 either be performed using posterior draws (\code{pd=TRUE}) or conditonal on the maximum likelihood
 estimate of the model parameters (\code{pd=FALSE}), referred to as maximum likelihood
-multiple imputation by von Hippel (2018).
+multiple imputation by von Hippel and Bartlett (2021).
 }
 \details{
 See the descriptions for \code{marginsType}, \code{margins}, \code{designType}, \code{design} and the documentation
@@ -102,6 +102,6 @@ imps <- mixImp(temp, nCat=3, M=10, pd=FALSE, rseed=4423)
 Schafer J.L. (1997). Analysis of incomplete multivariate data.
 Chapman & Hall, Boca Raton, Florida, USA.
 
-von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
-more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+von Hippel P.T. and Bartlett J.W. Maximum likelihood multiple imputation: faster,
+more efficient imputation without posterior draws. Statistical Science 2021; 36(3) 400-420 \doi{10.1214/20-STS793}.
 }

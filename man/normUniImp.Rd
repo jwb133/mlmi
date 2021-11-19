@@ -25,7 +25,7 @@ linear regression model. The covariates in the imputation model must be fully
 observed. By default \code{normUniImp} imputes every dataset using the
 maximum likelihood estimates of the imputation model parameters, which here
 coincides with the OLS estimates, referred to as maximum likelihood multiple
-imputation by von Hippel (2018). If \code{pd=TRUE} is specified, it instead
+imputation by von Hippel and Bartlett (2021). If \code{pd=TRUE} is specified, it instead
 performs posterior draw Bayesian imputation.
 }
 \details{
@@ -46,6 +46,6 @@ temp <- data.frame(x=x,y=y)
 imps <- normUniImp(temp, y~x, M=10, pd=FALSE)
 }
 \references{
-von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
-more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+von Hippel P.T. and Bartlett J.W. Maximum likelihood multiple imputation: faster,
+more efficient imputation without posterior draws. Statistical Science 2021; 36(3) 400-420 \doi{10.1214/20-STS793}.
 }

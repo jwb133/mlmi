@@ -7,7 +7,7 @@
 #' This function imputes from a multivariate normal model with unstructured covariance
 #' matrix, as described by Schafer (1997). With \code{pd=FALSE}, all imputed datasets
 #' are generated conditional on the MLE of the model parameter, referred to as maximum
-#' likelihood multiple imputation by von Hippel (2018).
+#' likelihood multiple imputation by von Hippel and Bartlett (2021).
 #'
 #' With \code{pd=TRUE}, regular 'proper' multiple imputation
 #' is used, where each imputation is drawn from a distinct value of the model
@@ -33,8 +33,8 @@
 #' @references Schafer J.L. (1997). Analysis of incomplete multivariate data.
 #' Chapman & Hall, Boca Raton, Florida, USA.
 #'
-#' @references von Hippel P.T. (2018) Maximum likelihood multiple imputation: faster,
-#' more efficient imputation without posterior draws. \href{https://arxiv.org/abs/1210.0870v9}{arXiv:1210.0870v9}.
+#' @references von Hippel P.T. and Bartlett J.W. Maximum likelihood multiple imputation: faster,
+#' more efficient imputation without posterior draws. Statistical Science 2021; 36(3) 400-420 \doi{10.1214/20-STS793}.
 #'
 #' @example data-raw/normExample.r
 #'
