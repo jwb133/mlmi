@@ -1,3 +1,6 @@
+# 1.1.2
+Updating maintainer contact email.
+
 # 1.1.1
 Adding reference to published version of paper proposing MLMI method to relevant functions.
 
