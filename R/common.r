@@ -14,3 +14,17 @@ H <- function(gamma,nu) {
   DeltaTilde <- diag(h(eigenValsVec$values, nu))
   Q %*% DeltaTilde %*% solve(Q)
 }
+
+#check if a vector takes consectutive integers starting from 1
+is_pos_consecutive <- function(x) {
+  #remove any NAs
+  x <- x[!is.na(x)]
+  #unique values taken
+  ux <- sort(unique(x))
+  if (length(ux)==max(x)) {
+    #values should be consecutive integers
+    all(ux == seq_len(max(ux)))
+  } else {
+    FALSE
+  }
+}

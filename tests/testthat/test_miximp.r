@@ -1,10 +1,6 @@
 context("Testing mixed variables imputation functions")
 library(mlmi)
 
-expit <- function(x) {
-  exp(x)/(1+exp(x))
-}
-
 test_that("Imputation of one continous variable no PD draw runs", {
   expect_error({
     set.seed(1234)
@@ -173,12 +169,12 @@ test_that("Restricted imputation gives unbiased estimates when it should", {
     set.seed(1234)
     n <- 500000
     x1 <- 1+(runif(n)<0.5)
-    x2 <- 1+1*(runif(n)<expit(-x1))
-    x3 <- 1+1*(runif(n)<expit(0.5*x1-0.5*x2))
+    x2 <- 1+1*(runif(n)<plogis(-x1))
+    x3 <- 1+1*(runif(n)<plogis(0.5*x1-0.5*x2))
     y <- x1+x2+x3+rnorm(n)
-    x2[runif(n)<expit(x1)] <- NA
-    x3[runif(n)<expit(-0.25*x1)] <- NA
-    y[runif(n)<expit(0.4*x1)] <- NA
+    x2[runif(n)<plogis(x1)] <- NA
+    x3[runif(n)<plogis(-0.25*x1)] <- NA
+    y[runif(n)<plogis(0.4*x1)] <- NA
     temp <- data.frame(x1,x2,x3,y)
     imps <- mixImp(temp, nCat=3, M=1, pd=FALSE, rseed=4423)
     mod <- lm(y~x1+x2+x3, data=imps)
@@ -191,12 +187,12 @@ test_that("Unrestricted imputation gives unbiased estimates when it should", {
     set.seed(1234)
     n <- 500000
     x1 <- 1+(runif(n)<0.5)
-    x2 <- 1+1*(runif(n)<expit(-x1))
-    x3 <- 1+1*(runif(n)<expit(0.5*x1-0.5*x2))
+    x2 <- 1+1*(runif(n)<plogis(-x1))
+    x3 <- 1+1*(runif(n)<plogis(0.5*x1-0.5*x2))
     y <- x1+x2+x3+rnorm(n)
-    x2[runif(n)<expit(x1)] <- NA
-    x3[runif(n)<expit(-0.25*x1)] <- NA
-    y[runif(n)<expit(0.4*x1)] <- NA
+    x2[runif(n)<plogis(x1)] <- NA
+    x3[runif(n)<plogis(-0.25*x1)] <- NA
+    y[runif(n)<plogis(0.4*x1)] <- NA
     temp <- data.frame(x1,x2,x3,y)
     imps <- mixImp(temp, nCat=3, M=1, pd=FALSE, marginsType=3, designType=2, rseed=4423)
     mod <- lm(y~x1+x2+x3, data=imps)
@@ -204,3 +200,67 @@ test_that("Unrestricted imputation gives unbiased estimates when it should", {
   }, TRUE)
 })
 
+
+test_that("Categorical variables must be numerics", {
+  expect_error({
+    set.seed(1234)
+    n <- 100
+    x1 <- 1+(runif(n)<0.5)
+    x2 <- 1+1*(runif(n)<plogis(-x1))
+    x3 <- 1+1*(runif(n)<plogis(0.5*x1-0.5*x2))
+    y <- x1+x2+x3+rnorm(n)
+    x2[runif(n)<plogis(x1)] <- NA
+    x3[runif(n)<plogis(-0.25*x1)] <- NA
+    y[runif(n)<plogis(0.4*x1)] <- NA
+    temp <- data.frame(as.factor(x1),x2,x3,y)
+    imps <- mixImp(temp, nCat=3, M=1, pd=FALSE, marginsType=3, designType=2, rseed=4423)
+  }, NULL)
+})
+
+test_that("Categorical variables must be consecutive integers starting at 1", {
+  expect_error({
+    set.seed(1234)
+    n <- 100
+    x1 <- 0+(runif(n)<0.5)
+    x2 <- 1+1*(runif(n)<plogis(-x1))
+    x3 <- 1+1*(runif(n)<plogis(0.5*x1-0.5*x2))
+    y <- x1+x2+x3+rnorm(n)
+    x2[runif(n)<plogis(x1)] <- NA
+    x3[runif(n)<plogis(-0.25*x1)] <- NA
+    y[runif(n)<plogis(0.4*x1)] <- NA
+    temp <- data.frame(x1,x2,x3,y)
+    imps <- mixImp(temp, nCat=3, M=1, pd=FALSE, marginsType=3, designType=2, rseed=4423)
+  }, NULL)
+})
+
+test_that("Variables must be consecutive integers starting at 1", {
+  expect_error({
+    set.seed(1234)
+    n <- 100
+    x1 <- 0.5+(runif(n)<0.5)
+    x2 <- 1+1*(runif(n)<plogis(-x1))
+    x3 <- 1+1*(runif(n)<plogis(0.5*x1-0.5*x2))
+    y <- x1+x2+x3+rnorm(n)
+    x2[runif(n)<plogis(x1)] <- NA
+    x3[runif(n)<plogis(-0.25*x1)] <- NA
+    y[runif(n)<plogis(0.4*x1)] <- NA
+    temp <- data.frame(x1,x2,x3,y)
+    imps <- mixImp(temp, nCat=3, M=1, pd=FALSE, marginsType=3, designType=2, rseed=4423)
+  }, NULL)
+})
+
+test_that("Variables must be consecutive integers starting at 1", {
+  expect_error({
+    set.seed(1234)
+    n <- 100
+    x1 <- 2+(runif(n)<0.5)
+    x2 <- 1+1*(runif(n)<plogis(-x1))
+    x3 <- 1+1*(runif(n)<plogis(0.5*x1-0.5*x2))
+    y <- x1+x2+x3+rnorm(n)
+    x2[runif(n)<plogis(x1)] <- NA
+    x3[runif(n)<plogis(-0.25*x1)] <- NA
+    y[runif(n)<plogis(0.4*x1)] <- NA
+    temp <- data.frame(x1,x2,x3,y)
+    imps <- mixImp(temp, nCat=3, M=1, pd=FALSE, marginsType=3, designType=2, rseed=4423)
+  }, NULL)
+})

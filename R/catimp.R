@@ -22,7 +22,7 @@
 #' \href{https://cran.r-project.org/package=bootImpute}{bootImpute} package.
 #'
 #' @param obsData The data frame to be imputed. Variables must be coded such that
-#' they take consecutive positive integer values, i.e. 1,2,3,...
+#' they are numerics and take consecutive positive integer values, i.e. 1,2,3,...
 #' @param M Number of imputations to generate.
 #' @param pd Specify whether to use posterior draws (\code{TRUE})
 #' or not (\code{FALSE}).
@@ -57,6 +57,14 @@ catImp <- function(obsData, M=10, pd=FALSE, type=1, margins=NULL, steps=100, rse
 
   if (is.data.frame(obsData)==FALSE) {
     stop("obsData argumment must be a data frame.")
+  }
+
+  if (all(sapply(obsData, is.numeric))==FALSE) {
+    stop("All columns of the data frame must be numerics.")
+  }
+
+  if (all(sapply(obsData, is_pos_consecutive))==FALSE) {
+    stop("All columns must take (consecutive) integer values starting at 1.")
   }
 
   if (is.null(rseed)==FALSE) {

@@ -16,7 +16,7 @@ catImp(
 }
 \arguments{
 \item{obsData}{The data frame to be imputed. Variables must be coded such that
-they take consecutive positive integer values, i.e. 1,2,3,...}
+they are numerics and take consecutive positive integer values, i.e. 1,2,3,...}
 
 \item{M}{Number of imputations to generate.}
 

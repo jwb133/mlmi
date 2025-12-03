@@ -1,3 +1,6 @@
+# 1.1.3
+Adding checks to the cat and mix imp functions to check user has coded variables correctly.
+
 # 1.1.2
 Updating maintainer contact email.
 

@@ -16,7 +16,7 @@
 #'
 #' @param obsData The data frame to be imputed. The categorical variables must be
 #' in the first \code{nCat} columns, and they must be coded using consecutive positive
-#' integers.
+#' integers and stored as numeric (not factors).
 #' @param nCat The number of categorical variables in \code{obsData}.
 #' @param M Number of imputations to generate.
 #' @param pd Specify whether to use posterior draws (\code{TRUE})
@@ -59,6 +59,21 @@ mixImp <- function(obsData, nCat, M=10, pd=FALSE,
 
   if (is.data.frame(obsData)==FALSE) {
     stop("obsData argumment must be a data frame.")
+  }
+
+  if (nCat >= ncol(obsData)) {
+    stop("nCat must be less than to the number of columns.")
+  }
+  if (nCat < 1) {
+    stop("nCat must be an integer greater than or equal to 1.")
+  }
+
+  if (all(sapply(obsData[,1:nCat, drop=FALSE], is.numeric))==FALSE) {
+    stop("The categorical variable columns of the data frame must be numerics.")
+  }
+
+  if (all(sapply(obsData[,1:nCat, drop=FALSE], is_pos_consecutive))==FALSE) {
+    stop("The categorical variable columns must take (consecutive) integer values starting at 1.")
   }
 
   if (is.null(rseed)==FALSE) {

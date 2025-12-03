@@ -21,7 +21,7 @@ mixImp(
 \arguments{
 \item{obsData}{The data frame to be imputed. The categorical variables must be
 in the first \code{nCat} columns, and they must be coded using consecutive positive
-integers.}
+integers and stored as numeric (not factors).}
 
 \item{nCat}{The number of categorical variables in \code{obsData}.}
 
