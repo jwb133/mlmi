@@ -18,7 +18,7 @@ imps <- refBasedCts(ctsTrialWide, outcomeVarStem="y", nVisits=3, trtVar="trt",
   library(bootImpute)
   bootImps <- bootImpute(ctsTrialWide, refBasedCts, nBoot=10, nImp=2,
                          outcomeVarStem="y", nVisits=3, trtVar="trt",
-                         baselineVars=c("v", "y0"), type="J2R", M=1)
+                         baselineVars=c("v", "y0"), type="J2R", M=2)
 
   #write a small wrapper function to perform an ANCOVA at the final time point
   ancova <- function(inputData) {

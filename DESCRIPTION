@@ -1,7 +1,7 @@
 Package: mlmi
 Type: Package
 Title: Maximum Likelihood Multiple Imputation
-Version: 1.1.3
+Version: 1.1.4
 Authors@R: person(given = "Jonathan",
                     family = "Bartlett",
                     role = c("aut", "cre"),
